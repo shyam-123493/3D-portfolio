@@ -1,0 +1,50 @@
+# Node
+node_modules/
+frontend/node_modules/
+dist/
+frontend/dist/
+*.local
+
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.env
+backend/.env
+venv/
+.venv/
+env/
+*.egg-info/
+.eggs/
+dist/
+build/
+*.sqlite3
+staticfiles/
+media/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+.docker/
+
+# Test coverage
+.coverage
+htmlcov/
+coverage.xml
+.pytest_cache/
+
+# Frontend test
+frontend/coverage/
+
+# Logs
+*.log
+*.err
+npm-debug.log*

@@ -1,0 +1,176 @@
+[
+  {
+    "model": "core.sitesettings",
+    "pk": 1,
+    "fields": {
+      "name": "Ghanshyam Desale",
+      "tagline": "Engineering high-performance digital products for fintech and enterprise platforms.",
+      "email": "ghanshyamdesale1421@gmail.com",
+      "phone": "+91 7498770064",
+      "location": "Mumbai, India",
+      "linkedin_url": "https://linkedin.com/in/ghanshyam-desale",
+      "github_url": "https://github.com/ghanshyam-desale",
+      "resume_file": "",
+      "years_experience": 3,
+      "available_for_work": true,
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "projects.project",
+    "pk": 1,
+    "fields": {
+      "slug": "bajaj-finserv-pwa",
+      "title": "Bajaj Finserv Bill Payment Platform",
+      "role": "Angular Developer",
+      "domain": "Fintech · Enterprise PWA",
+      "description": "Enterprise-scale Angular Progressive Web App for bill payments and financial services, handling complex offline scenarios, native bridge integrations, and high-fidelity analytics.",
+      "challenge": "Maintaining analytics continuity across Angular PWA, native Android, and iOS app contexts while handling complex offline/online state transitions for payment flows.",
+      "solution": "Designed a bridge-aware event schema that serializes analytics payloads before handoff, with a local queue that flushes when connectivity is restored.",
+      "color": "#00D4FF",
+      "github_url": "",
+      "live_url": "",
+      "featured": true,
+      "order": 1
+    }
+  },
+  {
+    "model": "projects.project",
+    "pk": 2,
+    "fields": {
+      "slug": "merchant-platform",
+      "title": "Merchant Platform",
+      "role": "Angular Developer",
+      "domain": "Merchant Onboarding · Payment Management",
+      "description": "End-to-end merchant onboarding and payment management platform with complex business validation workflows and reusable component libraries.",
+      "challenge": "Standardizing diverse merchant onboarding flows with complex validation rules across different merchant categories.",
+      "solution": "Abstracted business rules into a configurable validation engine with a reusable form component library that adapts to merchant type.",
+      "color": "#7C3AED",
+      "github_url": "",
+      "live_url": "",
+      "featured": true,
+      "order": 2
+    }
+  },
+  {
+    "model": "projects.project",
+    "pk": 3,
+    "fields": {
+      "slug": "branches-platform",
+      "title": "Branches Platform",
+      "role": "Angular Developer",
+      "domain": "Bill Payment · Service Management",
+      "description": "Branch-based bill payment and service management platform with dynamic configuration and version-controlled feature rollouts.",
+      "challenge": "Managing feature parity and version consistency across hundreds of branches with different configuration requirements.",
+      "solution": "Built a dynamic configuration loader that fetches branch-specific feature flags and version manifests at runtime.",
+      "color": "#10B981",
+      "github_url": "",
+      "live_url": "",
+      "featured": false,
+      "order": 3
+    }
+  },
+  {
+    "model": "projects.project",
+    "pk": 4,
+    "fields": {
+      "slug": "myashiyana",
+      "title": "MyAshiyana Management System",
+      "role": "Angular Developer",
+      "domain": "Society Management · Resident Services",
+      "description": "Comprehensive society management platform for resident management, facility tracking, and real-time service coordination.",
+      "challenge": "Providing real-time facility status and resident communication in a system serving multi-tower residential complexes.",
+      "solution": "Implemented polling-based real-time updates with optimistic UI updates and smart cache invalidation.",
+      "color": "#F59E0B",
+      "github_url": "",
+      "live_url": "",
+      "featured": false,
+      "order": 4
+    }
+  },
+  {
+    "model": "experience.experience",
+    "pk": 1,
+    "fields": {
+      "date": "May 2022",
+      "title": "B.E. Mechanical Engineering",
+      "organization": "Shri Gulabrao Deokar College of Engineering",
+      "description": "Graduated with CGPA 7.96. Strong analytical and systems-thinking foundation, pivot into software engineering.",
+      "entry_type": "education",
+      "tags": ["CGPA 7.96", "Systems Thinking"],
+      "order": 1
+    }
+  },
+  {
+    "model": "experience.experience",
+    "pk": 2,
+    "fields": {
+      "date": "2022",
+      "title": "Full Stack Developer Training",
+      "organization": "",
+      "description": "Intensive training in modern web development covering frontend, backend, databases, and deployment practices.",
+      "entry_type": "achievement",
+      "tags": ["HTML/CSS", "JavaScript", "React", "Node.js"],
+      "order": 2
+    }
+  },
+  {
+    "model": "experience.experience",
+    "pk": 3,
+    "fields": {
+      "date": "Aug 2022",
+      "title": "Angular Developer",
+      "organization": "KSW Technologies",
+      "description": "First professional role building Angular applications. Developed production-quality UI components, REST API integrations, and reusable modules.",
+      "entry_type": "work",
+      "tags": ["Angular", "TypeScript", "REST APIs"],
+      "order": 3
+    }
+  },
+  {
+    "model": "experience.experience",
+    "pk": 4,
+    "fields": {
+      "date": "Nov 2023",
+      "title": "Angular Developer",
+      "organization": "SnapWork Technologies",
+      "description": "Leading Angular PWA development for Bajaj Finserv bill payment platform. Driving Autopay module, IndexedDB architecture, native bridge integration, and analytics systems.",
+      "entry_type": "work",
+      "tags": ["PWA", "Fintech", "IndexedDB", "Analytics", "AWS S3"],
+      "order": 4
+    }
+  },
+  {
+    "model": "achievements.achievement",
+    "pk": 1,
+    "fields": {
+      "title": "Led Autopay Module — End-to-End",
+      "description": "Owned the complete delivery of the Autopay module for Bajaj Finserv: requirements, architecture decisions, implementation, testing, and production release coordination.",
+      "category": "delivery",
+      "highlight": "Full ownership from spec to production",
+      "order": 1
+    }
+  },
+  {
+    "model": "achievements.achievement",
+    "pk": 2,
+    "fields": {
+      "title": "IndexedDB Offline Architecture",
+      "description": "Designed and implemented the IndexedDB caching layer enabling resilient offline-first payment flows.",
+      "category": "architecture",
+      "highlight": "Resilient offline payments infrastructure",
+      "order": 2
+    }
+  },
+  {
+    "model": "achievements.achievement",
+    "pk": 3,
+    "fields": {
+      "title": "Multi-Platform Analytics Instrumentation",
+      "description": "Implemented CleverTap, GA4, and GTM tracking across PWA and native bridge surfaces with a unified event schema.",
+      "category": "analytics",
+      "highlight": "CleverTap · GA4 · GTM across platforms",
+      "order": 3
+    }
+  }
+]
