@@ -11,6 +11,8 @@ urlpatterns = [
     path('api/', include('apps.achievements.urls')),
     path('api/', include('apps.contact.urls')),
     path('api/', include('apps.core.urls')),
+    path('api/', include('apps.personal_projects.urls')),
+    path('api/', include('apps.vault.urls')),
 ]
 
 if settings.DEBUG:

@@ -4,6 +4,7 @@ import { Sphere, Points, PointMaterial, Line } from '@react-three/drei'
 import * as THREE from 'three'
 import { useSceneStore } from '@/stores/sceneStore'
 import { getParticleCount, getPixelRatio } from '@/three/utils/performance'
+import { FrameDriver } from '@/three/hooks/FrameDriver'
 import type { TimelineEntry } from '@/types'
 
 const TYPE_COLORS: Record<string, string> = {
@@ -97,10 +98,12 @@ export function JourneyScene({ entries, activeId }: { entries: TimelineEntry[]; 
     <Canvas
       camera={{ position: [1.5, 0.5, 8], fov: 65, near: 0.1, far: 100 }}
       dpr={dpr}
+      frameloop="demand"
       gl={{ antialias: qualityLevel === 'high', alpha: true, powerPreference: 'high-performance' }}
       style={{ position: 'absolute', inset: 0 }}
     >
       <Suspense fallback={null}>
+        <FrameDriver />
         <SceneContent entries={entries} activeId={activeId} />
       </Suspense>
     </Canvas>

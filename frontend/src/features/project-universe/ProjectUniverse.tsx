@@ -1,5 +1,5 @@
 import { lazy, Suspense, useRef, useState } from 'react'
-import { motion, useInView, AnimatePresence } from 'framer-motion'
+import { motion, useInView, AnimatePresence, useScroll, useSpring } from 'framer-motion'
 import { ArrowUpRight, ExternalLink, ChevronDown } from 'lucide-react'
 import { SectionHeading } from '@/components/ui/SectionHeading'
 import { ProjectDetail } from './ProjectDetail'
@@ -25,7 +25,7 @@ const FALLBACK_ACCENT = { color: '#6FE3D2', glow: 'rgba(111,227,210,0.12)', band
 function ProjectRow({ project, index, total }: { project: Project; index: number; total: number }) {
   const { setSelectedProject } = useSceneStore()
   const ref = useRef<HTMLDivElement>(null)
-  const inView = useInView(ref, { once: true, margin: '-40px' })
+  const inView = useInView(ref, { once: false, margin: '-40px' })
   const [open, setOpen] = useState(false)
   const accent = PROJECT_ACCENTS[project.slug] ?? FALLBACK_ACCENT
   const num = String(index + 1).padStart(2, '0')
@@ -41,11 +41,15 @@ function ProjectRow({ project, index, total }: { project: Project; index: number
       {/* Row divider */}
       <div className="h-px w-full" style={{ background: 'var(--c-divider)' }} />
 
-      <motion.button
-        className="group w-full text-left py-6 sm:py-8 relative overflow-hidden"
+      <motion.div
+        className="group w-full text-left py-6 sm:py-8 relative overflow-hidden cursor-pointer"
         onClick={() => setOpen((o) => !o)}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOpen((o) => !o) } }}
+        role="button"
+        tabIndex={0}
+        aria-expanded={open}
+        aria-label={`Toggle details for ${project.title}`}
         whileHover="hovered"
-        aria-label={`View ${project.title}`}
       >
         {/* Hover background wash */}
         <motion.div
@@ -151,7 +155,7 @@ function ProjectRow({ project, index, total }: { project: Project; index: number
         </div>
 
         {/* Tech stack — always visible */}
-        <div className="relative z-10 flex flex-wrap gap-1.5 mt-4 pl-4 sm:pl-6 ml-[calc(clamp(1.8rem,4vw,3.5rem)+1.25rem+1.5rem)] sm:ml-[calc(clamp(1.8rem,4vw,3.5rem)+2rem+2rem)]">
+        <div className="relative z-10 flex flex-wrap gap-1.5 mt-4 px-4 sm:px-6">
           {project.technologies.slice(0, 5).map((t) => (
             <span
               key={t.name}
@@ -172,7 +176,7 @@ function ProjectRow({ project, index, total }: { project: Project; index: number
             </span>
           )}
         </div>
-      </motion.button>
+      </motion.div>
 
       {/* Expandable highlights / key metrics */}
       <AnimatePresence initial={false}>
@@ -248,6 +252,10 @@ export function ProjectUniverse() {
   const { data: projects, isLoading, isError } = useProjects()
   const show3D = webGLSupported && !reducedMotion
 
+  const listRef = useRef<HTMLDivElement>(null)
+  const { scrollYProgress: listProgress } = useScroll({ target: listRef, offset: ['start center', 'end center'] })
+  const progressScaleX = useSpring(listProgress, { stiffness: 120, damping: 35, restDelta: 0.001 })
+
   return (
     <section id="projects" className="section-spacing relative" aria-label="Projects">
       <div className="section-padding">
@@ -264,13 +272,16 @@ export function ProjectUniverse() {
               className="mt-14 relative overflow-hidden"
               style={{
                 height: 'clamp(340px, 52vw, 580px)',
-                border: '1px solid var(--c-divider)',
+                border: '1px solid rgba(var(--c-teal-rgb), 0.20)',
                 borderRadius: 20,
-                background: 'radial-gradient(ellipse 80% 60% at 50% 60%, rgba(111,227,210,0.04) 0%, transparent 70%)',
+                background: 'radial-gradient(ellipse 80% 60% at 50% 60%, rgba(111,227,210,0.07) 0%, transparent 70%)',
+                backdropFilter: 'blur(10px)',
+                WebkitBackdropFilter: 'blur(10px)',
+                boxShadow: '0 0 60px rgba(111,227,210,0.05), 0 20px 60px rgba(0,0,0,0.12), inset 0 1px 0 rgba(var(--c-teal-rgb),0.08)',
               }}
               initial={{ opacity: 0, scale: 0.97 }}
               whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
+              viewport={{ once: false, margin: '-40px' }}
               transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
             >
               <Suspense
@@ -299,7 +310,18 @@ export function ProjectUniverse() {
           )}
 
           {/* Projects — editorial numbered list */}
-          <div className="mt-16">
+          <div ref={listRef} className="mt-16 relative">
+            {/* Teal→violet scroll progress bar — fills as you read through projects */}
+            <motion.div
+              className="absolute -top-3 left-0 right-0 h-[2px] origin-left pointer-events-none"
+              style={{
+                scaleX: progressScaleX,
+                background: 'linear-gradient(90deg, var(--c-teal), var(--c-violet))',
+                boxShadow: '0 0 8px rgba(var(--c-teal-rgb),0.5)',
+              }}
+              aria-hidden="true"
+            />
+
             {isLoading && (
               <div className="space-y-8">
                 {Array.from({ length: 4 }).map((_, i) => (

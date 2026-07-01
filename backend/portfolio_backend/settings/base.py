@@ -26,6 +26,8 @@ INSTALLED_APPS = [
     'apps.experience',
     'apps.achievements',
     'apps.contact',
+    'apps.personal_projects',
+    'apps.vault',
 ]
 
 MIDDLEWARE = [
@@ -95,8 +97,12 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_THROTTLE_RATES': {
         'anon': '60/minute',
+        'vault_unlock': '10/minute',
     },
 }
+
+# Vault PIN — change this in your .env file (VAULT_PIN=yourpin)
+VAULT_PIN = env('VAULT_PIN', default='2025')
 
 # CORS — strip trailing slashes to prevent corsheaders.E014
 CORS_ALLOWED_ORIGINS = [

@@ -1,6 +1,6 @@
 import { lazy, Suspense, useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { MapPin, Briefcase, Star } from 'lucide-react'
+import { MapPin, Briefcase, Star, ChevronDown } from 'lucide-react'
 import { useSceneStore } from '@/stores/sceneStore'
 import { useSiteSettings } from '@/hooks/usePortfolioData'
 import { MagneticButton } from '@/components/ui/MagneticButton'
@@ -112,31 +112,44 @@ export function HeroSection() {
         <div
           className="float-blob absolute rounded-full"
           style={{
-            width: 480, height: 480,
-            top: '8%', left: '6%',
-            background: 'radial-gradient(circle, rgba(var(--c-teal-rgb),0.07) 0%, transparent 70%)',
-            filter: 'blur(48px)',
+            width: 600, height: 600,
+            top: '4%', left: '4%',
+            background: 'radial-gradient(circle, rgba(var(--c-teal-rgb),0.10) 0%, transparent 70%)',
+            filter: 'blur(56px)',
           }}
         />
         <div
           className="float-blob-rev absolute rounded-full"
           style={{
-            width: 360, height: 360,
-            top: '20%', right: '8%',
-            background: 'radial-gradient(circle, rgba(var(--c-violet-rgb),0.06) 0%, transparent 70%)',
-            filter: 'blur(48px)',
+            width: 460, height: 460,
+            top: '16%', right: '5%',
+            background: 'radial-gradient(circle, rgba(var(--c-violet-rgb),0.09) 0%, transparent 70%)',
+            filter: 'blur(52px)',
           }}
         />
         <div
           className="float-blob-slow absolute rounded-full"
           style={{
-            width: 280, height: 280,
-            bottom: '25%', left: '18%',
-            background: 'radial-gradient(circle, rgba(var(--c-teal-rgb),0.05) 0%, transparent 70%)',
-            filter: 'blur(36px)',
+            width: 320, height: 320,
+            bottom: '22%', left: '14%',
+            background: 'radial-gradient(circle, rgba(var(--c-teal-rgb),0.07) 0%, transparent 70%)',
+            filter: 'blur(40px)',
+          }}
+        />
+        <div
+          className="float-blob absolute rounded-full"
+          style={{
+            width: 380, height: 380,
+            bottom: '8%', right: '6%',
+            background: 'radial-gradient(circle, rgba(var(--c-violet-rgb),0.07) 0%, transparent 70%)',
+            filter: 'blur(48px)',
+            animationDelay: '-8s',
           }}
         />
       </div>
+
+      {/* Subtle depth grid */}
+      <div className="ag-depth-bg absolute inset-0 pointer-events-none opacity-50" aria-hidden="true" />
 
       {/* Profile photo — larger, full-height with subtle parallax */}
       <div className="absolute inset-0 flex justify-center overflow-hidden pointer-events-none">
@@ -199,9 +212,11 @@ export function HeroSection() {
         <div
           className="flex items-center gap-2 rounded-full px-2.5 sm:px-3 py-1 sm:py-1.5"
           style={{
-            background: 'var(--c-glass-sm)',
-            border: '1px solid rgba(var(--c-teal-rgb),0.3)',
-            backdropFilter: 'blur(8px)',
+            background: 'rgba(var(--c-bg-rgb), 0.40)',
+            border: '1px solid rgba(var(--c-teal-rgb), 0.50)',
+            backdropFilter: 'blur(22px) saturate(1.8)',
+            WebkitBackdropFilter: 'blur(22px) saturate(1.8)',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.14), 0 0 0 1px rgba(var(--c-teal-rgb),0.06), inset 0 1px 0 rgba(var(--c-invert-rgb),0.06)',
           }}
         >
           <span className="w-1.5 h-1.5 rounded-full flex-shrink-0 teal-pulse" style={{ background: 'var(--c-teal)' }} />
@@ -219,9 +234,11 @@ export function HeroSection() {
             key={label}
             className="hidden xs:flex items-center gap-2 rounded-full px-2.5 sm:px-3 py-1 sm:py-1.5"
             style={{
-              background: 'var(--c-glass-sm)',
-              border: '1px solid var(--c-overlay-light)',
-              backdropFilter: 'blur(8px)',
+              background: 'rgba(var(--c-bg-rgb), 0.38)',
+              border: '1px solid var(--c-overlay-subtle)',
+              backdropFilter: 'blur(18px) saturate(1.5)',
+              WebkitBackdropFilter: 'blur(18px) saturate(1.5)',
+              boxShadow: '0 2px 16px rgba(0,0,0,0.10), inset 0 1px 0 rgba(var(--c-invert-rgb),0.04)',
             }}
           >
             <Icon size={10} style={{ color: 'var(--c-text-muted)', flexShrink: 0 }} />
@@ -262,12 +279,15 @@ export function HeroSection() {
       >
         <MagneticButton href="#engineering">
           <span
-            className="font-mono text-[11px] sm:text-[12px] tracking-[0.1em] rounded-full px-4 sm:px-6 py-2 sm:py-2.5 block transition-colors duration-200"
+            data-cursor-label="Services"
+            className="font-mono text-[11px] sm:text-[12px] tracking-[0.1em] rounded-full px-4 sm:px-6 py-2 sm:py-2.5 block transition-all duration-300"
             style={{
               color: 'var(--c-text-muted)',
-              background: 'var(--c-glass-sm)',
-              border: '1px solid var(--border-subtle)',
-              backdropFilter: 'blur(8px)',
+              background: 'rgba(var(--c-bg-rgb), 0.38)',
+              border: '1px solid var(--c-overlay-light)',
+              backdropFilter: 'blur(18px) saturate(1.5)',
+              WebkitBackdropFilter: 'blur(18px) saturate(1.5)',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.10), inset 0 1px 0 rgba(var(--c-invert-rgb),0.05)',
             }}
           >
             Services
@@ -276,8 +296,13 @@ export function HeroSection() {
 
         <MagneticButton href="#contact" strength={0.4}>
           <span
+            data-cursor-label="Contact"
             className="font-mono text-[11px] sm:text-[12px] tracking-[0.1em] font-semibold rounded-full px-4 sm:px-6 py-2 sm:py-2.5 block"
-            style={{ background: 'var(--c-teal)', color: 'var(--c-bg)' }}
+            style={{
+              background: 'var(--c-teal)',
+              color: 'var(--c-bg)',
+              boxShadow: '0 4px 20px rgba(var(--c-teal-rgb),0.35), 0 8px 32px rgba(var(--c-teal-rgb),0.15)',
+            }}
           >
             Contact →
           </span>
@@ -285,17 +310,39 @@ export function HeroSection() {
 
         <MagneticButton href="#projects">
           <span
-            className="font-mono text-[11px] sm:text-[12px] tracking-[0.1em] rounded-full px-4 sm:px-6 py-2 sm:py-2.5 block transition-colors duration-200"
+            data-cursor-label="Work"
+            className="font-mono text-[11px] sm:text-[12px] tracking-[0.1em] rounded-full px-4 sm:px-6 py-2 sm:py-2.5 block transition-all duration-300"
             style={{
               color: 'var(--c-text-muted)',
-              background: 'var(--c-glass-sm)',
-              border: '1px solid var(--border-subtle)',
-              backdropFilter: 'blur(8px)',
+              background: 'rgba(var(--c-bg-rgb), 0.38)',
+              border: '1px solid var(--c-overlay-light)',
+              backdropFilter: 'blur(18px) saturate(1.5)',
+              WebkitBackdropFilter: 'blur(18px) saturate(1.5)',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.10), inset 0 1px 0 rgba(var(--c-invert-rgb),0.05)',
             }}
           >
             See my projects
           </span>
         </MagneticButton>
+      </motion.div>
+
+      {/* Scroll indicator */}
+      <motion.div
+        className="relative z-20 flex flex-col items-center gap-1.5 pb-5"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.8, delay: 1.6 }}
+        aria-hidden="true"
+      >
+        <span
+          className="font-mono text-[8px] tracking-[0.28em] uppercase select-none"
+          style={{ color: 'var(--c-text-muted)', opacity: 0.5 }}
+        >
+          scroll
+        </span>
+        <div className="scroll-bounce" style={{ color: 'rgba(var(--c-teal-rgb), 0.55)' }}>
+          <ChevronDown size={14} />
+        </div>
       </motion.div>
     </section>
   )

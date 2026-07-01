@@ -1,6 +1,10 @@
 import { useEffect, useRef } from 'react'
 import { motion, useScroll, useSpring } from 'framer-motion'
 import Lenis from 'lenis'
+import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+
+gsap.registerPlugin(ScrollTrigger)
 import { NavBar } from '@/components/ui/NavBar'
 import { CustomCursor } from '@/components/ui/CustomCursor'
 import { SmokeBackground } from '@/three/scenes/SmokeBackground'
@@ -51,15 +55,14 @@ export function Layout({ children }: Props) {
       setScrollY(e.scroll)
     })
 
-    let raf: number
-    function tick(time: number) {
-      lenis.raf(time)
-      raf = requestAnimationFrame(tick)
-    }
-    raf = requestAnimationFrame(tick)
+    // Wire Lenis to GSAP ticker so ScrollTrigger tracks smooth-scroll position
+    lenis.on('scroll', ScrollTrigger.update)
+    const ticker = (time: number) => lenis.raf(time * 1000)
+    gsap.ticker.add(ticker)
+    gsap.ticker.lagSmoothing(0)
 
     return () => {
-      cancelAnimationFrame(raf)
+      gsap.ticker.remove(ticker)
       lenis.destroy()
     }
   }, [setScrollY])

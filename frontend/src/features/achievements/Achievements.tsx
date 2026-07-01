@@ -1,18 +1,13 @@
-import { lazy, Suspense, useRef } from 'react'
-import { motion, useInView } from 'framer-motion'
+import { useRef } from 'react'
+import { motion, useScroll, useTransform } from 'framer-motion'
 import {
   Trophy, Cpu, BarChart3, Package, Users, Clock, Award, ExternalLink,
-  Layers, Database, Cloud, GitBranch,
 } from 'lucide-react'
 import { SectionHeading } from '@/components/ui/SectionHeading'
 import { CardSkeleton, Skeleton } from '@/components/ui/Skeleton'
 import { useAchievements, useCertifications } from '@/hooks/usePortfolioData'
-import { useSceneStore } from '@/stores/sceneStore'
+import { SkillGlobe } from '@/components/ui/SkillGlobe'
 import type { Achievement, Certification } from '@/types'
-
-const SkillsGlobe = lazy(() =>
-  import('@/three/scenes/SkillsGlobe').then((m) => ({ default: m.SkillsGlobe })),
-)
 
 // ─── Achievement cards ────────────────────────────────────────────────────────
 interface AccentConfig {
@@ -43,12 +38,18 @@ function AchievementCard({ item, index }: { item: Achievement; index: number }) 
   return (
     <motion.article
       className="relative overflow-hidden rounded-2xl border transition-colors duration-300 group"
-      style={{ background: 'var(--c-overlay-faint)', borderColor: cfg.border }}
-      initial={{ opacity: 0, y: 48, scale: 0.93 }}
+      style={{
+        background: 'rgba(var(--c-bg-rgb), 0.46)',
+        backdropFilter: 'blur(18px) saturate(1.5)',
+        WebkitBackdropFilter: 'blur(18px) saturate(1.5)',
+        borderColor: cfg.border,
+        boxShadow: '0 8px 32px rgba(0,0,0,0.07), 0 20px 48px rgba(0,0,0,0.03), inset 0 1px 0 var(--c-overlay-faint)',
+      }}
+      initial={{ opacity: 0, y: 32, scale: 0.97 }}
       whileInView={{ opacity: 1, y: 0, scale: 1 }}
-      viewport={{ once: true, margin: '-40px' }}
-      transition={{ duration: 0.68, delay: index * 0.06, ease: [0.16, 1, 0.3, 1] }}
-      whileHover={{ y: -4, transition: { duration: 0.2 } } as any}
+      viewport={{ once: false, margin: '-50px' }}
+      transition={{ duration: 0.65, delay: index * 0.06, ease: [0.16, 1, 0.3, 1] }}
+      whileHover={{ y: -6, transition: { duration: 0.3, ease: [0.16, 1, 0.3, 1] } } as any}
     >
       {/* Top accent */}
       <div
@@ -103,7 +104,7 @@ function CertificationCard({ cert, index }: { cert: Certification; index: number
       }}
       initial={{ opacity: 0, x: -32, scale: 0.96 }}
       whileInView={{ opacity: 1, x: 0, scale: 1 }}
-      viewport={{ once: true }}
+      viewport={{ once: false, margin: '-40px' }}
       transition={{ duration: 0.55, delay: index * 0.09, ease: [0.16, 1, 0.3, 1] }}
       whileHover={{ x: 4, transition: { duration: 0.18 } } as any}
     >
@@ -139,156 +140,32 @@ function CertificationCard({ cert, index }: { cert: Certification; index: number
   )
 }
 
-// ─── Skills bento grid ────────────────────────────────────────────────────────
-const SKILLS_CATEGORIES = [
-  {
-    area: 'Frontend',
-    icon: Layers,
-    color: '#DD0031',
-    colorRgb: '221,0,49',
-    items: [
-      { name: 'Angular 14+',  level: 5 },
-      { name: 'TypeScript',   level: 5 },
-      { name: 'JavaScript',   level: 5 },
-      { name: 'RxJS',         level: 4 },
-      { name: 'PWA',          level: 4 },
-      { name: 'HTML / CSS',   level: 5 },
-    ],
-  },
-  {
-    area: 'Backend & Storage',
-    icon: Database,
-    color: '#6DB33F',
-    colorRgb: '109,179,63',
-    items: [
-      { name: 'Java',            level: 4 },
-      { name: 'Spring Boot',     level: 4 },
-      { name: 'IndexedDB',       level: 5 },
-      { name: 'REST APIs',       level: 5 },
-      { name: 'Service Workers', level: 4 },
-      { name: 'WebSockets',      level: 3 },
-    ],
-  },
-  {
-    area: 'Analytics',
-    icon: BarChart3,
-    color: '#E37400',
-    colorRgb: '227,116,0',
-    items: [
-      { name: 'CleverTap',  level: 5 },
-      { name: 'GA4',        level: 4 },
-      { name: 'GTM',        level: 4 },
-      { name: 'Event Design', level: 4 },
-      { name: 'Data Layers', level: 4 },
-    ],
-  },
-  {
-    area: 'Infrastructure',
-    icon: Cloud,
-    color: '#0EA5E9',
-    colorRgb: '14,165,233',
-    items: [
-      { name: 'AWS S3',          level: 3 },
-      { name: 'CI/CD',           level: 4 },
-      { name: 'Git',             level: 5 },
-      { name: 'Docker (basics)', level: 3 },
-      { name: 'Dynamic Config',  level: 4 },
-    ],
-  },
-]
-
-function SkillPip({ filled, color }: { filled: boolean; color: string }) {
-  return (
-    <span
-      className="inline-block rounded-full"
-      style={{
-        width: 5, height: 5,
-        background: filled ? color : 'var(--c-divider)',
-        boxShadow: filled ? `0 0 6px ${color}` : 'none',
-        transition: 'all 0.2s',
-      }}
-    />
-  )
-}
-
-function SkillCategoryCard({
-  area, icon: Icon, color, colorRgb, items, index,
-}: typeof SKILLS_CATEGORIES[0] & { index: number }) {
-  const ref = useRef<HTMLDivElement>(null)
-  const inView = useInView(ref, { once: true, margin: '-30px' })
-
-  return (
-    <motion.div
-      ref={ref}
-      className="relative overflow-hidden rounded-2xl border"
-      style={{
-        background: 'var(--c-overlay-faint)',
-        borderColor: `rgba(${colorRgb}, 0.18)`,
-      }}
-      initial={{ opacity: 0, y: 28, scale: 0.95 }}
-      animate={inView ? { opacity: 1, y: 0, scale: 1 } : {}}
-      transition={{ duration: 0.6, delay: index * 0.08, ease: [0.16, 1, 0.3, 1] }}
-      whileHover={{ borderColor: `rgba(${colorRgb}, 0.45)` } as any}
-    >
-      {/* Top color bar */}
-      <div className="h-[2px] w-full" style={{ background: `linear-gradient(90deg, ${color}, transparent)` }} />
-
-      {/* Header */}
-      <div className="flex items-center gap-2.5 px-5 pt-4 pb-3">
-        <div
-          className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
-          style={{ background: `rgba(${colorRgb}, 0.12)`, border: `1px solid rgba(${colorRgb}, 0.25)` }}
-        >
-          <Icon size={13} style={{ color }} />
-        </div>
-        <p className="font-mono text-[10px] tracking-[0.18em] uppercase font-medium" style={{ color }}>
-          {area}
-        </p>
-      </div>
-
-      {/* Skills list */}
-      <div className="px-5 pb-5 space-y-2.5">
-        {items.map((item, i) => (
-          <motion.div
-            key={item.name}
-            className="flex items-center justify-between gap-3"
-            initial={{ opacity: 0, x: -10 }}
-            animate={inView ? { opacity: 1, x: 0 } : {}}
-            transition={{ duration: 0.4, delay: index * 0.08 + i * 0.045, ease: [0.16, 1, 0.3, 1] }}
-          >
-            <span className="text-xs sm:text-[13px] text-text-secondary">{item.name}</span>
-            <div className="flex items-center gap-1 flex-shrink-0">
-              {Array.from({ length: 5 }).map((_, j) => (
-                <SkillPip key={j} filled={j < item.level} color={color} />
-              ))}
-            </div>
-          </motion.div>
-        ))}
-      </div>
-    </motion.div>
-  )
-}
-
-// ─── Static fallback (no WebGL) ───────────────────────────────────────────────
-function SkillsFallback() {
-  return (
-    <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      {SKILLS_CATEGORIES.map((cat, i) => (
-        <SkillCategoryCard key={cat.area} {...cat} index={i} />
-      ))}
-    </div>
-  )
-}
-
 // ─── Section ──────────────────────────────────────────────────────────────────
 export function Achievements() {
-  const { webGLSupported } = useSceneStore()
   const { data: achievements, isLoading: loadingAch } = useAchievements()
   const { data: certifications, isLoading: loadingCerts } = useCertifications()
 
+  const sectionRef = useRef<HTMLElement>(null)
+  const { scrollYProgress } = useScroll({ target: sectionRef, offset: ['start end', 'center center'] })
+  const glowOpacity = useTransform(scrollYProgress, [0, 0.7, 1], [0, 0.14, 0.08])
+  const glowY = useTransform(scrollYProgress, [0, 1], ['25%', '-5%'])
+
   return (
-    <section id="achievements" className="section-spacing section-padding" aria-label="Achievements">
-      <div className="max-w-6xl mx-auto">
+    <section ref={sectionRef} id="achievements" className="section-spacing section-padding relative overflow-hidden" aria-label="Achievements">
+      {/* Scroll-reactive violet radial glow */}
+      <motion.div
+        className="pointer-events-none absolute right-0 -top-32 w-[700px] h-[700px] rounded-full"
+        style={{
+          opacity: glowOpacity,
+          y: glowY,
+          background: 'radial-gradient(circle, rgba(var(--c-violet-rgb),1) 0%, transparent 70%)',
+          filter: 'blur(80px)',
+          willChange: 'transform, opacity',
+        }}
+        aria-hidden="true"
+      />
+
+      <div className="max-w-6xl mx-auto relative">
         <SectionHeading
           label="06 · Achievements"
           title="Delivered Impact"
@@ -305,12 +182,11 @@ export function Achievements() {
 
         {/* ── Skills ── */}
         <div className="mt-20">
-          {/* Skills header */}
           <motion.div
-            className="flex items-center gap-4 mb-8"
+            className="flex items-center gap-4 mb-6"
             initial={{ opacity: 0, x: -16 }}
             whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
+            viewport={{ once: false, margin: '-40px' }}
             transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
           >
             <span className="font-mono text-[10px] tracking-widest" style={{ color: 'var(--c-teal)' }}>[SKILLS]</span>
@@ -319,67 +195,27 @@ export function Achievements() {
               style={{ background: 'linear-gradient(to right, var(--c-teal), var(--c-divider))', originX: 0 }}
               initial={{ scaleX: 0 }}
               whileInView={{ scaleX: 1 }}
-              viewport={{ once: true }}
+              viewport={{ once: false, margin: '-40px' }}
               transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
             />
             <span className="font-mono text-[10px] text-text-muted tracking-widest uppercase">Core Technologies</span>
             <div className="flex-1 h-px" style={{ background: 'var(--c-divider)' }} />
           </motion.div>
 
-          {/* 3D globe */}
-          {webGLSupported && (
-            <motion.div
-              className="relative overflow-hidden rounded-2xl mb-6"
-              style={{
-                border: '1px solid var(--c-divider)',
-                background: 'radial-gradient(ellipse 60% 50% at 50% 50%, rgba(111,227,210,0.04) 0%, transparent 70%)',
-              }}
-              initial={{ opacity: 0, scale: 0.97 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1] }}
-            >
-              <Suspense
-                fallback={
-                  <div className="flex flex-wrap gap-2 justify-center p-10">
-                    {['Angular', 'TypeScript', 'Java', 'Spring Boot', 'PWA', 'IndexedDB'].map((s) => (
-                      <span
-                        key={s}
-                        className="font-mono text-xs px-3 py-1 rounded-full border animate-pulse"
-                        style={{ color: 'var(--c-teal)', borderColor: 'rgba(var(--c-teal-rgb),0.3)' }}
-                      >
-                        {s}
-                      </span>
-                    ))}
-                  </div>
-                }
-              >
-                <SkillsGlobe />
-              </Suspense>
-
-              {/* Bottom fade */}
-              <div
-                className="absolute bottom-0 left-0 right-0 h-12 pointer-events-none"
-                style={{ background: 'linear-gradient(to top, var(--c-bg), transparent)' }}
-              />
-
-              {/* Hover instruction */}
-              <div className="absolute bottom-3 inset-x-0 flex items-center justify-center gap-2 pointer-events-none">
-                <div className="w-1 h-1 rounded-full" style={{ background: 'var(--c-teal)', opacity: 0.6 }} />
-                <span className="font-mono text-[9px] tracking-[0.22em] uppercase" style={{ color: 'var(--c-text-muted)' }}>
-                  hover to explore · auto-rotates
-                </span>
-                <div className="w-1 h-1 rounded-full" style={{ background: 'var(--c-teal)', opacity: 0.6 }} />
-              </div>
-            </motion.div>
-          )}
-
-          {/* Skill category bento cards */}
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {SKILLS_CATEGORIES.map((cat, i) => (
-              <SkillCategoryCard key={cat.area} {...cat} index={i} />
-            ))}
-          </div>
+          {/* CSS/JS skills globe — no WebGL, pauses off-screen, drag to spin */}
+          <motion.div
+            className="rounded-2xl overflow-hidden"
+            style={{
+              border: '1px solid var(--c-divider)',
+              background: 'rgba(8, 11, 18, 0.72)',
+            }}
+            initial={{ opacity: 0, scale: 0.97 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: false, margin: '-40px' }}
+            transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <SkillGlobe />
+          </motion.div>
         </div>
 
         {/* ── Certifications ── */}
@@ -387,7 +223,7 @@ export function Achievements() {
           className="mt-14"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
+          viewport={{ once: false, margin: '-40px' }}
           transition={{ duration: 0.6 }}
         >
           <div className="flex items-center gap-4 mb-6">
@@ -411,3 +247,4 @@ export function Achievements() {
     </section>
   )
 }
+

@@ -4,6 +4,7 @@ import { Html, Line, Float, Sphere } from '@react-three/drei'
 import * as THREE from 'three'
 import { useSceneStore } from '@/stores/sceneStore'
 import { getPixelRatio } from '@/three/utils/performance'
+import { FrameDriver } from '@/three/hooks/FrameDriver'
 
 const SKILLS = [
   { name: 'Angular',     color: '#DD0031', glow: '#FF3366', size: 1.3 },
@@ -291,10 +292,12 @@ export function SkillsGlobe() {
       <Canvas
         camera={{ position: [0, 0, 7], fov: 44 }}
         dpr={dpr}
+        frameloop="demand"
         gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
         style={{ background: 'transparent' }}
       >
         <Suspense fallback={null}>
+          <FrameDriver />
           <GlobeContent />
         </Suspense>
       </Canvas>

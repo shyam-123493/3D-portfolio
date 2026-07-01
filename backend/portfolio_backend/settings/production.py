@@ -14,6 +14,8 @@ CSRF_COOKIE_SECURE = True
 
 # Railway/Render terminate SSL at the proxy — trust their forwarded header
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+# SECURE_PROXY_SSL_HEADER makes this redirect-safe behind Railway's reverse proxy
+SECURE_SSL_REDIRECT = True
 
 # Database connection pooling
 CONN_MAX_AGE = 60

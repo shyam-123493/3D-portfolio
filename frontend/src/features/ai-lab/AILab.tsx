@@ -33,7 +33,7 @@ const HOW_I_USE = [
 function RadialGauge({ pct, color, label, index }: { pct: number; color: string; label: string; index: number }) {
   const ref = useRef<SVGCircleElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
-  const inView = useInView(containerRef, { once: true })
+  const inView = useInView(containerRef, { once: false, margin: '-40px' })
 
   const size    = 84
   const stroke  = 6
@@ -60,8 +60,14 @@ function RadialGauge({ pct, color, label, index }: { pct: number; color: string;
             strokeLinecap="round"
             strokeDasharray={circ}
             initial={{ strokeDashoffset: circ }}
-            animate={inView ? { strokeDashoffset: offset } : {}}
-            transition={{ duration: 1.4, delay: 0.15 + index * 0.1, ease: [0.16, 1, 0.3, 1] }}
+            animate={inView ? { strokeDashoffset: offset } : { strokeDashoffset: circ }}
+            transition={{
+              duration: 1.1,
+              delay: inView ? 0.1 + index * 0.09 : 0,
+              type: 'spring',
+              stiffness: 55,
+              damping: 14,
+            }}
             style={{ filter: `drop-shadow(0 0 6px ${color})` }}
           />
         </svg>
@@ -72,9 +78,9 @@ function RadialGauge({ pct, color, label, index }: { pct: number; color: string;
           <motion.span
             className="font-mono font-bold tabular-nums"
             style={{ fontSize: 15, color, lineHeight: 1 }}
-            initial={{ opacity: 0 }}
-            animate={inView ? { opacity: 1 } : {}}
-            transition={{ delay: 0.3 + index * 0.1, duration: 0.4 }}
+            initial={{ opacity: 0, scale: 0.7 }}
+            animate={inView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.7 }}
+            transition={{ delay: inView ? 0.25 + index * 0.09 : 0, duration: 0.35, type: 'spring', stiffness: 200, damping: 18 }}
           >
             {pct}
             <span style={{ fontSize: 8, opacity: 0.7 }}>%</span>
@@ -102,12 +108,15 @@ function ToolCard({ tool, index }: { tool: AITool; index: number }) {
     <motion.div
       className="relative overflow-hidden rounded-xl group"
       style={{
-        background: 'var(--c-overlay-faint)',
-        border: `1px solid rgba(${accentRgb}, 0.15)`,
+        background: 'rgba(var(--c-bg-rgb), 0.42)',
+        backdropFilter: 'blur(14px) saturate(1.4)',
+        WebkitBackdropFilter: 'blur(14px) saturate(1.4)',
+        border: `1px solid rgba(${accentRgb}, 0.18)`,
+        boxShadow: '0 4px 20px rgba(0,0,0,0.06)',
       }}
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-16px' }}
+      viewport={{ once: false, margin: '-16px' }}
       transition={{ duration: 0.5, delay: index * 0.055, ease: [0.16, 1, 0.3, 1] }}
       whileHover={{ borderColor: `rgba(${accentRgb}, 0.45)` } as any}
     >
@@ -181,7 +190,7 @@ function ToolCard({ tool, index }: { tool: AITool; index: number }) {
 // ─── Animated "how I use AI" list ─────────────────────────────────────────────
 function HowIUseList() {
   const ref = useRef<HTMLUListElement>(null)
-  const inView = useInView(ref, { once: true })
+  const inView = useInView(ref, { once: false, margin: '-50px' })
 
   return (
     <ul ref={ref} className="space-y-2">
@@ -227,8 +236,11 @@ export function AILab() {
           <motion.div
             className="rounded-2xl p-6 sm:p-8"
             style={{
-              background: 'var(--c-overlay-faint)',
-              border: '1px solid var(--c-divider)',
+              background: 'rgba(var(--c-bg-rgb), 0.46)',
+              backdropFilter: 'blur(18px) saturate(1.5)',
+              WebkitBackdropFilter: 'blur(18px) saturate(1.5)',
+              border: '1px solid var(--c-overlay-light)',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.07), inset 0 1px 0 var(--c-overlay-faint)',
             }}
             initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -241,7 +253,7 @@ export function AILab() {
                 AI Proficiency
               </p>
             </div>
-            <div className="grid grid-cols-3 sm:grid-cols-5 gap-6 place-items-center">
+            <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-5 gap-4 sm:gap-6 place-items-center">
               {AI_SKILLS.map((skill, i) => (
                 <RadialGauge
                   key={skill.label}
@@ -258,8 +270,11 @@ export function AILab() {
           <motion.div
             className="rounded-2xl p-6 sm:p-8"
             style={{
-              background: 'var(--c-overlay-faint)',
-              border: '1px solid var(--c-divider)',
+              background: 'rgba(var(--c-bg-rgb), 0.46)',
+              backdropFilter: 'blur(18px) saturate(1.5)',
+              WebkitBackdropFilter: 'blur(18px) saturate(1.5)',
+              border: '1px solid var(--c-overlay-light)',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.07), inset 0 1px 0 var(--c-overlay-faint)',
             }}
             initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}

@@ -4,6 +4,7 @@ import { Sparkles, Float, MeshDistortMaterial, Line, Sphere } from '@react-three
 import * as THREE from 'three'
 import { useSceneStore } from '@/stores/sceneStore'
 import { getParticleCount, getPixelRatio } from '@/three/utils/performance'
+import { FrameDriver } from '@/three/hooks/FrameDriver'
 
 // ─── Wireframe icosahedron shell (one draw call via EdgesGeometry) ─────────────
 function WireframeSphere() {
@@ -12,6 +13,8 @@ function WireframeSphere() {
     () => new THREE.EdgesGeometry(new THREE.IcosahedronGeometry(5.8, 2)),
     [],
   )
+
+  useEffect(() => () => { edgeGeo.dispose() }, [edgeGeo])
 
   useFrame(({ clock }) => {
     if (!ref.current) return
@@ -299,10 +302,12 @@ export function HeroScene() {
     <Canvas
       camera={{ position: [0, 0, 10], fov: 52, near: 0.1, far: 100 }}
       dpr={dpr}
+      frameloop="demand"
       gl={{ antialias: qualityLevel !== 'low', alpha: true, powerPreference: 'high-performance' }}
       style={{ position: 'absolute', inset: 0, background: 'transparent' }}
     >
       <Suspense fallback={null}>
+        <FrameDriver />
         <SceneContent />
       </Suspense>
     </Canvas>

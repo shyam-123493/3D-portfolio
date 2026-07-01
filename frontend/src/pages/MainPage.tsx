@@ -1,22 +1,47 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { BootSequence } from '@/features/hero/BootSequence'
 import { HeroSection } from '@/features/hero/HeroSection'
 import { JourneySection } from '@/features/journey/JourneySection'
 import { ProjectUniverse } from '@/features/project-universe/ProjectUniverse'
+import { PersonalProjects } from '@/features/personal-projects/PersonalProjects'
 import { EngineeringSystems } from '@/features/engineering-systems/EngineeringSystems'
 import { AILab } from '@/features/ai-lab/AILab'
 import { Achievements } from '@/features/achievements/Achievements'
 import { ContactSection } from '@/features/contact/ContactSection'
 import { RecruiterView } from '@/features/recruiter-view/RecruiterView'
+import { Vault } from '@/features/vault/Vault'
 import { MarqueeRibbon } from '@/components/ui/MarqueeRibbon'
 import { useUIStore } from '@/stores/uiStore'
+import { useVaultStore } from '@/stores/vaultStore'
 
+// ── Easter-egg footer — click "©" 5× within 3 s to open the vault ──────────
 function FooterBar() {
+  const openVault = useVaultStore((s) => s.open)
+  const clicksRef = useRef(0)
+  const timerRef  = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const handleCopyrightClick = () => {
+    clicksRef.current += 1
+    if (timerRef.current) clearTimeout(timerRef.current)
+
+    if (clicksRef.current >= 5) {
+      clicksRef.current = 0
+      openVault()
+    } else {
+      timerRef.current = setTimeout(() => { clicksRef.current = 0 }, 3000)
+    }
+  }
+
   return (
     <footer className="section-padding py-10 border-t border-border-subtle" role="contentinfo">
       <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-        <p className="font-mono text-[10px] text-text-muted tracking-[0.14em] uppercase">
+        {/* Easter egg trigger — 5 rapid clicks opens the vault */}
+        <p
+          className="font-mono text-[10px] text-text-muted tracking-[0.14em] uppercase select-none"
+          onClick={handleCopyrightClick}
+          title=""
+        >
           © {new Date().getFullYear()} Ghanshyam Desale
         </p>
         <p className="font-mono text-[10px] text-text-muted tracking-[0.14em] uppercase">
@@ -84,6 +109,7 @@ export function MainPage() {
             />
 
             <ProjectUniverse />
+            <PersonalProjects />
             <EngineeringSystems />
 
             <MarqueeRibbon
@@ -103,6 +129,9 @@ export function MainPage() {
 
       {/* Recruiter view — always mounted so it can be opened from nav */}
       <RecruiterView />
+
+      {/* Personal vault — hidden, triggered by 5× clicking the © in the footer */}
+      <Vault />
     </>
   )
 }

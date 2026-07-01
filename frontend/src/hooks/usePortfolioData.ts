@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useMutation } from '@tanstack/react-query'
 import { api } from '@/services/api'
 import type { Project, TimelineEntry, Achievement, Certification, SiteSettings } from '@/types'
 
@@ -133,13 +133,67 @@ export function useSiteSettings() {
   })
 }
 
+// ── Personal Projects ────────────────────────────────────────────────────────
+export interface PersonalProjectAPI {
+  id: number
+  slug: string
+  title: string
+  tagline: string
+  description: string
+  status: 'live' | 'wip' | 'archived'
+  color: string
+  year: number
+  github_url: string
+  live_url: string
+  demo_url: string
+  media_type: 'none' | 'image' | 'video'
+  media_image_url: string | null
+  media_video_url: string
+  technologies: { name: string }[]
+}
+
+export function usePersonalProjects() {
+  return useQuery<PersonalProjectAPI[]>({
+    queryKey: ['personal-projects'],
+    queryFn: async () => {
+      const res = await api.getPersonalProjects()
+      return (res.data.results ?? res.data) as PersonalProjectAPI[]
+    },
+  })
+}
+
+// ── Vault ────────────────────────────────────────────────────────────────────
+export interface VaultItemAPI {
+  id: number
+  title: string
+  value: string
+  url: string
+  notes: string
+  tags: string[]
+  order: number
+}
+
+export interface VaultSectionAPI {
+  id: number
+  slug: string
+  label: string
+  emoji: string
+  order: number
+  items: VaultItemAPI[]
+}
+
+export function useVaultUnlock() {
+  return useMutation<VaultSectionAPI[], Error, string>({
+    mutationFn: async (pin: string) => {
+      const res = await api.unlockVault(pin)
+      return res.data as VaultSectionAPI[]
+    },
+  })
+}
+
 export function useContactMutation() {
-  const qc = useQueryClient()
   return useMutation({
     mutationFn: api.submitContact,
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['contact'] })
-    },
   })
 }
 

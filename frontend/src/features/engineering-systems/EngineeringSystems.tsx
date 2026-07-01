@@ -1,5 +1,9 @@
-import { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { useState, useRef, useEffect } from 'react'
+import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion'
+import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+
+gsap.registerPlugin(ScrollTrigger)
 import {
   Wifi, Smartphone, BarChart3, Settings2, Zap, Database, Package, ArrowRight,
 } from 'lucide-react'
@@ -40,8 +44,11 @@ function ServiceCard({ svc, index }: { svc: typeof SERVICES[0]; index: number })
       className="relative rounded-[18px] flex flex-col sm:flex-row gap-5 sm:gap-8 items-start border"
       style={{
         padding: 'clamp(24px, 4vw, 46px) clamp(20px, 4vw, 50px)',
-        background: 'linear-gradient(180deg, var(--c-overlay-faint), rgba(var(--c-invert-rgb),0.008))',
+        background: 'rgba(var(--c-bg-rgb), 0.44)',
+        backdropFilter: 'blur(16px) saturate(1.4)',
+        WebkitBackdropFilter: 'blur(16px) saturate(1.4)',
         borderColor: 'var(--c-overlay-light)',
+        boxShadow: '0 8px 32px rgba(0,0,0,0.08), inset 0 1px 0 var(--c-overlay-faint)',
       }}
       initial={{ opacity: 0, y: 40, x: index % 2 === 0 ? -24 : 24, scale: 0.95 }}
       whileInView={{ opacity: 1, y: 0, x: 0, scale: 1 }}
@@ -252,9 +259,50 @@ export function EngineeringSystems() {
   const [activeId, setActiveId] = useState(engineeringTopics[0].id)
   const activeTopic = engineeringTopics.find((t) => t.id === activeId)!
 
+  const sectionRef = useRef<HTMLElement>(null)
+  const deepDivesRef = useRef<HTMLDivElement>(null)
+  const { scrollYProgress } = useScroll({ target: sectionRef, offset: ['start end', 'center center'] })
+  const glowOpacity = useTransform(scrollYProgress, [0, 0.6, 1], [0, 0.22, 0.12])
+  const glowY = useTransform(scrollYProgress, [0, 1], ['20%', '-5%'])
+
+  useEffect(() => {
+    const panel = deepDivesRef.current
+    if (!panel) return
+
+    const trigger = ScrollTrigger.create({
+      trigger: panel,
+      start: 'top 76px',
+      end: `+=${engineeringTopics.length * 55}vh`,
+      pin: true,
+      pinSpacing: true,
+      onUpdate: (self) => {
+        const idx = Math.min(
+          Math.floor(self.progress * engineeringTopics.length),
+          engineeringTopics.length - 1,
+        )
+        setActiveId(engineeringTopics[idx].id)
+      },
+    })
+
+    return () => trigger.kill()
+  }, [])
+
   return (
-    <section id="engineering" className="section-spacing section-padding" aria-label="Engineering Systems">
-      <div className="max-w-6xl mx-auto">
+    <section ref={sectionRef} id="engineering" className="section-spacing section-padding relative overflow-hidden" aria-label="Engineering Systems">
+      {/* Scroll-reactive teal glow — intensifies as section enters view */}
+      <motion.div
+        className="pointer-events-none absolute left-1/4 -top-20 w-[700px] h-[700px] rounded-full"
+        style={{
+          opacity: glowOpacity,
+          y: glowY,
+          background: 'radial-gradient(circle, rgba(var(--c-teal-rgb),1) 0%, transparent 70%)',
+          filter: 'blur(72px)',
+          willChange: 'transform, opacity',
+        }}
+        aria-hidden="true"
+      />
+
+      <div className="max-w-6xl mx-auto relative">
         <SectionHeading
           label="04 · What I Build"
           title="What I build"
@@ -275,9 +323,9 @@ export function EngineeringSystems() {
           <div className="h-px flex-1 bg-border-subtle/60" />
         </div>
 
-        <div className="mt-16 grid lg:grid-cols-[1fr_1.5fr] gap-8">
-          {/* Topic list */}
-          <div className="flex flex-col gap-2.5">
+        <div ref={deepDivesRef} className="mt-16 grid lg:grid-cols-[1fr_1.5fr] gap-8">
+          {/* Topic list — second on mobile (below preview), first on desktop */}
+          <div className="order-2 lg:order-1 flex flex-col gap-2.5">
             {engineeringTopics.map((topic, i) => (
               <TopicNode
                 key={topic.id}
@@ -289,8 +337,8 @@ export function EngineeringSystems() {
             ))}
           </div>
 
-          {/* Detail panel */}
-          <div className="lg:sticky lg:top-24 self-start">
+          {/* Detail panel — first on mobile (preview), second on desktop, sticky */}
+          <div className="order-1 lg:order-2 lg:sticky lg:top-24 self-start">
             <AnimatePresence mode="wait">
               <TopicDetail key={activeTopic.id} topic={activeTopic} />
             </AnimatePresence>
@@ -300,3 +348,4 @@ export function EngineeringSystems() {
     </section>
   )
 }
+

@@ -19,12 +19,14 @@ apiClient.interceptors.response.use(
 )
 
 export const api = {
-  getProjects: () => apiClient.get('/api/projects/'),
-  getProject: (slug: string) => apiClient.get(`/api/projects/${slug}/`),
-  getExperience: () => apiClient.get('/api/experience/'),
-  getAchievements: () => apiClient.get('/api/achievements/'),
-  getCertifications: () => apiClient.get('/api/certifications/'),
-  getSiteSettings: () => apiClient.get('/api/site-settings/'),
+  getProjects:         () => apiClient.get('/api/projects/'),
+  getProject:          (slug: string) => apiClient.get(`/api/projects/${slug}/`),
+  getExperience:       () => apiClient.get('/api/experience/'),
+  getAchievements:     () => apiClient.get('/api/achievements/'),
+  getCertifications:   () => apiClient.get('/api/certifications/'),
+  getSiteSettings:     () => apiClient.get('/api/site-settings/'),
+  getPersonalProjects: () => apiClient.get('/api/personal-projects/'),
+  unlockVault:         (pin: string) => apiClient.post('/api/vault/unlock/', { pin }),
   submitContact: (data: {
     name: string
     email: string

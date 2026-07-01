@@ -4,6 +4,7 @@ import { Sphere, Points, PointMaterial, Html, Line, Torus } from '@react-three/d
 import * as THREE from 'three'
 import { useSceneStore } from '@/stores/sceneStore'
 import { getParticleCount, getPixelRatio } from '@/three/utils/performance'
+import { FrameDriver } from '@/three/hooks/FrameDriver'
 import type { Project } from '@/types'
 
 const PROJECT_COLORS: Record<string, string> = {
@@ -33,6 +34,8 @@ function GridPlane() {
     geo.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3))
     return geo
   }, [])
+
+  useEffect(() => () => { geometry.dispose() }, [geometry])
 
   return (
     <lineSegments geometry={geometry}>
@@ -308,10 +311,12 @@ export function ProjectUniverseScene({ projects }: { projects: Project[] }) {
     <Canvas
       camera={{ position: [0, 6.5, 10.5], fov: 65, near: 0.1, far: 300 }}
       dpr={dpr}
+      frameloop="demand"
       gl={{ antialias: qualityLevel === 'high', alpha: true, powerPreference: 'high-performance' }}
       style={{ position: 'absolute', inset: 0 }}
     >
       <Suspense fallback={null}>
+        <FrameDriver />
         <SceneContent projects={projects} />
       </Suspense>
     </Canvas>

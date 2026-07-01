@@ -273,8 +273,8 @@
 
   .holo-card:hover {
     border-color: rgba(var(--c-teal-rgb), 0.30);
-    box-shadow: 0 0 32px rgba(var(--c-teal-rgb), 0.10), 0 8px 32px rgba(var(--c-bg-rgb), 0.5);
-    transform: translateY(-2px);
+    box-shadow: 0 0 36px rgba(var(--c-teal-rgb), 0.12), 0 20px 48px rgba(0, 0, 0, 0.16);
+    transform: translateY(-6px);
   }
 
   .label-mono {
@@ -410,10 +410,11 @@
   .glass-card {
     border-radius: 0.75rem;
     border: 1px solid var(--border-subtle);
-    background: rgba(var(--c-bg-rgb), 0.55);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    transition: background 0.3s ease, border-color 0.3s ease;
+    background: rgba(var(--c-bg-rgb), 0.50);
+    backdrop-filter: blur(18px) saturate(1.5);
+    -webkit-backdrop-filter: blur(18px) saturate(1.5);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08), inset 0 1px 0 var(--c-overlay-faint);
+    transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
   }
 
   .text-shimmer {
@@ -449,6 +450,66 @@
     color: var(--c-teal);
     border-color: rgba(var(--c-teal-rgb), 0.4);
     background: rgba(var(--c-teal-rgb), 0.08);
+  }
+
+  /* ── Antigravity Design System ─────────────────────────────────────────────── */
+
+  /* Pure glassmorphism panel — no layout assumptions, pair with Framer Motion */
+  .ag-glass {
+    background: rgba(var(--c-bg-rgb), 0.48);
+    backdrop-filter: blur(18px) saturate(1.6);
+    -webkit-backdrop-filter: blur(18px) saturate(1.6);
+    border: 1px solid var(--c-overlay-light);
+    box-shadow:
+      0 4px 24px rgba(0, 0, 0, 0.08),
+      inset 0 1px 0 var(--c-overlay-subtle);
+  }
+
+  /* Floating glass card — CSS hover transform, use on non-Framer-Motion elements */
+  .ag-card {
+    background: rgba(var(--c-bg-rgb), 0.48);
+    backdrop-filter: blur(18px) saturate(1.6);
+    -webkit-backdrop-filter: blur(18px) saturate(1.6);
+    border: 1px solid var(--c-overlay-light);
+    border-radius: 1rem;
+    box-shadow:
+      0 8px 32px rgba(0, 0, 0, 0.08),
+      0 20px 48px rgba(0, 0, 0, 0.04),
+      inset 0 1px 0 var(--c-overlay-subtle);
+    transition:
+      transform 0.38s cubic-bezier(0.16, 1, 0.3, 1),
+      box-shadow 0.38s cubic-bezier(0.16, 1, 0.3, 1),
+      border-color 0.3s ease;
+    will-change: transform;
+  }
+  .ag-card:hover {
+    transform: translateY(-6px);
+    box-shadow:
+      0 20px 48px rgba(0, 0, 0, 0.14),
+      0 40px 80px rgba(0, 0, 0, 0.06),
+      inset 0 1px 0 var(--c-overlay-light);
+    border-color: var(--c-overlay-subtle);
+  }
+
+  /* Standalone float-on-hover — attach to any element */
+  .ag-float-hover {
+    transition:
+      transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+      box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: transform;
+  }
+  .ag-float-hover:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+  }
+
+  /* Section depth background — subtle teal grid + radial atmospheric glow */
+  .ag-depth-bg {
+    background-image:
+      radial-gradient(ellipse 90% 50% at 50% 0%, rgba(var(--c-teal-rgb), 0.055) 0%, transparent 65%),
+      linear-gradient(rgba(var(--c-teal-rgb), 0.013) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(var(--c-teal-rgb), 0.013) 1px, transparent 1px);
+    background-size: 100% 100%, 72px 72px, 72px 72px;
   }
 }
 
@@ -592,3 +653,82 @@ section, header, footer, nav, aside, article, div {
   50%       { box-shadow: 0 0 0 5px rgba(var(--c-teal-rgb), 0); }
 }
 .teal-pulse { animation: teal-pulse-kf 2.2s ease-in-out infinite; }
+
+/* ── Scroll indicator bounce ─────────────────────────────────────────────────── */
+@keyframes scroll-bounce {
+  0%, 100% { transform: translateY(0);   opacity: 0.85; }
+  50%       { transform: translateY(8px); opacity: 0.25; }
+}
+.scroll-bounce { animation: scroll-bounce 2s ease-in-out infinite; will-change: transform; }
+
+/* ── Cursor label typography ─────────────────────────────────────────────────── */
+.cursor-label {
+  font-family: 'IBM Plex Mono', 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  pointer-events: none;
+  white-space: nowrap;
+  user-select: none;
+}
+
+/* ── Touch device — disable hover-only transforms ───────────────────────────── */
+@media (hover: none) and (pointer: coarse) {
+  .ag-card:hover,
+  .holo-card:hover,
+  .ag-float-hover:hover {
+    transform: none !important;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.08) !important;
+  }
+  .surface-card-hover:hover {
+    border-color: var(--c-border) !important;
+    box-shadow: none !important;
+  }
+  a, button, [role="button"] {
+    -webkit-tap-highlight-color: rgba(var(--c-teal-rgb), 0.12);
+    touch-action: manipulation;
+  }
+}
+
+/* ── Performance: strip backdrop-filter globally ────────────────────────────
+   80+ backdrop-filter elements was the single biggest frame-time cost (18 fps).
+   Removing them restores compositing budget. Cards look equally good with a
+   higher-opacity solid background. Nav keeps visual clarity via bg-opacity-94.
+   !important beats inline style="" in the CSS cascade, so this covers all
+   React inline backdropFilter props across every component. ────────────────── */
+*, *::before, *::after {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Compensate for lost glass depth — raise base opacity on named card classes */
+.glass-card {
+  background: rgba(10, 14, 22, 0.88) !important;
+}
+.ag-glass {
+  background: rgba(10, 14, 22, 0.82) !important;
+}
+.ag-card {
+  background: rgba(10, 14, 22, 0.80) !important;
+}
+
+/* ── Section stacking context — prevents scroll-reveal overlap ───────────────
+   Each section owns an opaque background + stacking context so elements
+   animating in from below can never visually bleed through a section above. */
+section {
+  position: relative;
+  z-index: 1;
+  isolation: isolate;
+  background: var(--c-bg);
+}
+
+/* ── prefers-reduced-motion — disable all custom animations ─────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .float-blob, .float-blob-slow, .float-blob-rev { animation: none !important; }
+  .scroll-bounce   { animation: none !important; }
+  .teal-pulse      { animation: none !important; }
+  .animate-marquee { animation: none !important; }
+  .profile-ring    { animation: none !important; }
+  .text-shimmer    { animation: none !important; }
+  .animate-blink   { animation: none !important; }
+}
