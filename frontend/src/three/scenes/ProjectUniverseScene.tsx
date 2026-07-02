@@ -110,12 +110,13 @@ function ProjectPlanet({
 
   const hasRing = index === 1 || index === 3
 
-  useFrame(({ clock }) => {
+  useFrame(({ clock }, delta) => {
     if (!groupRef.current || !meshRef.current) return
     const t = clock.getElapsedTime() + orbitOffset
     groupRef.current.position.x = Math.cos(t * orbitSpeed) * orbitRadius
     groupRef.current.position.z = Math.sin(t * orbitSpeed) * orbitRadius
-    meshRef.current.rotation.y += 0.008
+    // delta-based so spin speed is identical on 60Hz and 144Hz displays
+    meshRef.current.rotation.y += delta * 0.48
     if (isSelected) {
       // pulse scale slightly
       const s = 1.45 + Math.sin(clock.getElapsedTime() * 2.5) * 0.04
@@ -238,9 +239,9 @@ function StarField({ count }: { count: number }) {
   )
 }
 
-// ─── Mouse parallax camera controller ────────────────────────────────────────
+// ─── Mouse parallax + scroll flyover camera controller ───────────────────────
 function CameraController() {
-  const { camera } = useThree()
+  const { camera, gl } = useThree()
   const target = useRef(new THREE.Vector3(0, 6.5, 10.5))
   const current = useRef(new THREE.Vector3(0, 6.5, 10.5))
   const mouse   = useRef({ x: 0, y: 0 })
@@ -255,9 +256,16 @@ function CameraController() {
   }, [])
 
   useFrame((_, delta) => {
+    // Scroll flyover: as the section moves through the viewport the camera
+    // sweeps from a high overhead angle down toward the orbital plane
+    // (0.5 progress ≈ the original static framing)
+    const rect = gl.domElement.getBoundingClientRect()
+    const vh = window.innerHeight
+    const progress = Math.min(Math.max((vh - rect.top) / (vh + rect.height), 0), 1)
+
     target.current.x = mouse.current.x * 1.4
-    target.current.y = 6.5 - mouse.current.y * 0.9
-    target.current.z = 10.5 + mouse.current.y * 0.5
+    target.current.y = 8.6 - progress * 4.2 - mouse.current.y * 0.9
+    target.current.z = 11.6 - progress * 2.2 + mouse.current.y * 0.5
     current.current.lerp(target.current, delta * 1.4)
     camera.position.copy(current.current)
     camera.lookAt(0, 0, 0)

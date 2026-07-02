@@ -27,6 +27,17 @@ export const api = {
   getSiteSettings:     () => apiClient.get('/api/site-settings/'),
   getPersonalProjects: () => apiClient.get('/api/personal-projects/'),
   unlockVault:         (pin: string) => apiClient.post('/api/vault/unlock/', { pin }),
+  createVaultItem: (pin: string, data: {
+    section: string
+    title: string
+    value?: string
+    url?: string
+    notes?: string
+    tags?: string[]
+    order?: number
+  }) => apiClient.post('/api/vault/items/', data, { headers: { 'X-Vault-Pin': pin } }),
+  deleteVaultItem: (pin: string, id: number) =>
+    apiClient.delete(`/api/vault/items/${id}/`, { headers: { 'X-Vault-Pin': pin } }),
   submitContact: (data: {
     name: string
     email: string

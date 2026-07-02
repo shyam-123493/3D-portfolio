@@ -29,7 +29,7 @@ export default defineConfig({
             },
         },
         target: 'es2020',
-        sourcemap: true,
+        sourcemap: process.env.NODE_ENV !== 'production',
     },
     optimizeDeps: {
         include: ['three', '@react-three/fiber', '@react-three/drei'],

@@ -1,6 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
+import { render, screen } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { BrowserRouter } from 'react-router-dom'
 import { ContactSection } from './ContactSection'
@@ -8,6 +7,7 @@ import { ContactSection } from './ContactSection'
 vi.mock('@/services/api', () => ({
   api: {
     submitContact: vi.fn().mockResolvedValue({ data: { detail: 'Message received.' } }),
+    submitMeeting: vi.fn().mockResolvedValue({ data: { detail: 'Meeting booked.' } }),
   },
 }))
 
@@ -21,19 +21,17 @@ function Wrapper({ children }: { children: React.ReactNode }) {
 }
 
 describe('ContactSection', () => {
-  it('renders the contact form fields', () => {
+  it('renders the section heading and intro copy', () => {
     render(<ContactSection />, { wrapper: Wrapper })
-    expect(screen.getByLabelText(/name \*/i)).toBeInTheDocument()
-    expect(screen.getByLabelText(/email \*/i)).toBeInTheDocument()
-    expect(screen.getByLabelText(/message \*/i)).toBeInTheDocument()
+    expect(screen.getByRole('region', { name: /contact/i })).toBeInTheDocument()
+    expect(screen.getByText(/07 · let's talk/i)).toBeInTheDocument()
+    expect(screen.getByText(/book a 30-minute intro call/i)).toBeInTheDocument()
   })
 
-  it('shows validation error for short name on submit', async () => {
+  it('renders the meeting booking widget', () => {
     render(<ContactSection />, { wrapper: Wrapper })
-    const submit = screen.getByRole('button', { name: /send message/i })
-    await userEvent.click(submit)
-    await waitFor(() => {
-      expect(screen.getByText(/at least 2 characters/i)).toBeInTheDocument()
-    })
+    // Booking card shows the host identity and meeting length
+    expect(screen.getByText('GD')).toBeInTheDocument()
+    expect(screen.getAllByText(/30 min/i).length).toBeGreaterThan(0)
   })
 })

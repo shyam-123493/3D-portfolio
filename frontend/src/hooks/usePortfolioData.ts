@@ -191,6 +191,34 @@ export function useVaultUnlock() {
   })
 }
 
+export interface VaultItemCreate {
+  section: string
+  title: string
+  value?: string
+  url?: string
+  notes?: string
+  tags?: string[]
+  order?: number
+}
+
+export function useVaultItemCreate() {
+  return useMutation<VaultItemAPI, Error, { pin: string; data: VaultItemCreate }>({
+    mutationFn: async ({ pin, data }) => {
+      const res = await api.createVaultItem(pin, data)
+      return res.data as VaultItemAPI
+    },
+  })
+}
+
+export function useVaultItemDelete() {
+  return useMutation<number, Error, { pin: string; id: number }>({
+    mutationFn: async ({ pin, id }) => {
+      await api.deleteVaultItem(pin, id)
+      return id
+    },
+  })
+}
+
 export function useContactMutation() {
   return useMutation({
     mutationFn: api.submitContact,

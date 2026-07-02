@@ -272,9 +272,13 @@ export function EngineeringSystems() {
     const trigger = ScrollTrigger.create({
       trigger: panel,
       start: 'top 76px',
-      end: `+=${engineeringTopics.length * 55}vh`,
+      // function-based px value — re-computed on every ScrollTrigger.refresh()
+      end: () => `+=${Math.round(engineeringTopics.length * 0.55 * window.innerHeight)}`,
       pin: true,
       pinSpacing: true,
+      // Starts moving the panel toward its pinned position one frame early,
+      // eliminating the visible jump when the pin engages mid-scroll
+      anticipatePin: 1,
       onUpdate: (self) => {
         const idx = Math.min(
           Math.floor(self.progress * engineeringTopics.length),
@@ -323,7 +327,13 @@ export function EngineeringSystems() {
           <div className="h-px flex-1 bg-border-subtle/60" />
         </div>
 
-        <div ref={deepDivesRef} className="mt-16 grid lg:grid-cols-[1fr_1.5fr] gap-8">
+        {/* relative z-10 + solid bg: while pinned, earlier content scrolling
+            past can never visually bleed through the panel */}
+        <div
+          ref={deepDivesRef}
+          className="mt-16 grid lg:grid-cols-[1fr_1.5fr] gap-8 relative z-10"
+          style={{ background: 'var(--c-bg)' }}
+        >
           {/* Topic list — second on mobile (below preview), first on desktop */}
           <div className="order-2 lg:order-1 flex flex-col gap-2.5">
             {engineeringTopics.map((topic, i) => (

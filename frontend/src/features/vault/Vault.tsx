@@ -1,13 +1,19 @@
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Copy, Check, ExternalLink, Lock, Loader2, AlertCircle } from 'lucide-react'
+import { X, Copy, Check, ExternalLink, Lock, Loader2, AlertCircle, Plus, Trash2 } from 'lucide-react'
 import { useVaultStore } from '@/stores/vaultStore'
-import { useVaultUnlock, type VaultSectionAPI, type VaultItemAPI } from '@/hooks/usePortfolioData'
+import {
+  useVaultUnlock,
+  useVaultItemCreate,
+  useVaultItemDelete,
+  type VaultSectionAPI,
+  type VaultItemAPI,
+} from '@/hooks/usePortfolioData'
 
 const PIN_LENGTH = 4
 
 // ── PIN gate ────────────────────────────────────────────────────────────────
-function PinGate({ onUnlock }: { onUnlock: (sections: VaultSectionAPI[]) => void }) {
+function PinGate({ onUnlock }: { onUnlock: (sections: VaultSectionAPI[], pin: string) => void }) {
   const [pin, setPin]     = useState('')
   const [shake, setShake] = useState(false)
   const close             = useVaultStore((s) => s.close)
@@ -16,7 +22,7 @@ function PinGate({ onUnlock }: { onUnlock: (sections: VaultSectionAPI[]) => void
   const attempt = (value: string) => {
     if (value.length < PIN_LENGTH) return
     mutate(value, {
-      onSuccess: (sections) => onUnlock(sections),
+      onSuccess: (sections) => onUnlock(sections, value),
       onError: () => {
         setShake(true)
         setPin('')
@@ -131,8 +137,28 @@ function PinGate({ onUnlock }: { onUnlock: (sections: VaultSectionAPI[]) => void
 }
 
 // ── Vault item row ──────────────────────────────────────────────────────────
-function ItemRow({ item }: { item: VaultItemAPI }) {
+function ItemRow({ item, onDelete, isDeleting }: {
+  item: VaultItemAPI
+  onDelete: () => void
+  isDeleting: boolean
+}) {
   const [copied, setCopied] = useState(false)
+  const [armed, setArmed] = useState(false)
+
+  // Two-click delete: first click arms (turns red), second click deletes.
+  // Auto-disarms after 2.5s so a stray click can't linger.
+  useEffect(() => {
+    if (!armed) return
+    const t = setTimeout(() => setArmed(false), 2500)
+    return () => clearTimeout(t)
+  }, [armed])
+
+  const handleDeleteClick = () => {
+    if (isDeleting) return
+    if (!armed) { setArmed(true); return }
+    setArmed(false)
+    onDelete()
+  }
 
   const copy = (text: string) => {
     navigator.clipboard.writeText(text).catch(() => {})
@@ -207,17 +233,214 @@ function ItemRow({ item }: { item: VaultItemAPI }) {
             <ExternalLink size={12} style={{ color: 'var(--c-text-muted)' }} />
           </a>
         )}
+        <button
+          onClick={handleDeleteClick}
+          aria-label={armed ? 'Click again to confirm delete' : `Delete ${item.title}`}
+          title={armed ? 'Click again to confirm' : 'Delete item'}
+          className="rounded-md flex items-center justify-center transition-all duration-150"
+          style={{
+            width: armed ? 'auto' : 28,
+            height: 28,
+            padding: armed ? '0 8px' : 0,
+            background: armed ? 'rgba(239,68,68,0.15)' : 'transparent',
+            border: armed ? '1px solid rgba(239,68,68,0.4)' : '1px solid transparent',
+            color: armed ? '#EF4444' : 'var(--c-text-muted)',
+          }}
+        >
+          {isDeleting ? (
+            <Loader2 size={12} className="animate-spin" />
+          ) : armed ? (
+            <span className="font-mono text-[9px] tracking-wider uppercase whitespace-nowrap flex items-center gap-1">
+              <Trash2 size={11} /> sure?
+            </span>
+          ) : (
+            <Trash2 size={12} />
+          )}
+        </button>
       </div>
     </div>
   )
 }
 
+// ── Inline add-item form ────────────────────────────────────────────────────
+function AddItemForm({ sectionSlug, pin, nextOrder, onAdded }: {
+  sectionSlug: string
+  pin: string
+  nextOrder: number
+  onAdded: (item: VaultItemAPI) => void
+}) {
+  const [open, setOpen]   = useState(false)
+  const [title, setTitle] = useState('')
+  const [value, setValue] = useState('')
+  const [url, setUrl]     = useState('')
+  const [notes, setNotes] = useState('')
+  const [tags, setTags]   = useState('')
+  const { mutate, isPending, isError, reset } = useVaultItemCreate()
+
+  const inputStyle: React.CSSProperties = {
+    background: 'rgba(255,255,255,0.05)',
+    border: '1px solid rgba(255,255,255,0.1)',
+    color: 'var(--c-text)',
+  }
+
+  const clear = () => {
+    setTitle(''); setValue(''); setUrl(''); setNotes(''); setTags('')
+    reset()
+  }
+
+  const submit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!title.trim() || isPending) return
+    mutate(
+      {
+        pin,
+        data: {
+          section: sectionSlug,
+          title: title.trim(),
+          value: value.trim(),
+          url: url.trim(),
+          notes: notes.trim(),
+          tags: tags.split(',').map((t) => t.trim()).filter(Boolean),
+          order: nextOrder,
+        },
+      },
+      {
+        onSuccess: (item) => {
+          onAdded(item)
+          clear()
+          setOpen(false)
+        },
+      },
+    )
+  }
+
+  if (!open) {
+    return (
+      <button
+        onClick={() => setOpen(true)}
+        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg font-mono text-[11px] tracking-wider uppercase transition-all duration-150"
+        style={{
+          border: '1px dashed rgba(111,227,210,0.25)',
+          color: 'rgba(111,227,210,0.7)',
+          background: 'rgba(111,227,210,0.03)',
+        }}
+      >
+        <Plus size={12} /> Add item
+      </button>
+    )
+  }
+
+  return (
+    <motion.form
+      onSubmit={submit}
+      className="rounded-lg p-4 space-y-2.5"
+      style={{ background: 'rgba(111,227,210,0.04)', border: '1px solid rgba(111,227,210,0.18)' }}
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.2 }}
+    >
+      <input
+        autoFocus
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        placeholder="Title *"
+        maxLength={200}
+        className="w-full px-3 py-2 rounded-md font-mono text-[12px] outline-none focus:border-teal-400/40"
+        style={inputStyle}
+      />
+      <div className="grid grid-cols-2 gap-2.5">
+        <input
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          placeholder="Value (copyable)"
+          maxLength={500}
+          className="px-3 py-2 rounded-md font-mono text-[12px] outline-none"
+          style={inputStyle}
+        />
+        <input
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+          placeholder="URL (https://…)"
+          className="px-3 py-2 rounded-md font-mono text-[12px] outline-none"
+          style={inputStyle}
+        />
+      </div>
+      <input
+        value={notes}
+        onChange={(e) => setNotes(e.target.value)}
+        placeholder="Notes"
+        className="w-full px-3 py-2 rounded-md font-mono text-[12px] outline-none"
+        style={inputStyle}
+      />
+      <input
+        value={tags}
+        onChange={(e) => setTags(e.target.value)}
+        placeholder="Tags — comma separated"
+        className="w-full px-3 py-2 rounded-md font-mono text-[12px] outline-none"
+        style={inputStyle}
+      />
+
+      {isError && (
+        <p className="font-mono text-[10px] flex items-center gap-1.5" style={{ color: '#EF4444' }}>
+          <AlertCircle size={11} /> Failed to add — check the fields (URL must be valid).
+        </p>
+      )}
+
+      <div className="flex items-center gap-2 pt-1">
+        <button
+          type="submit"
+          disabled={!title.trim() || isPending}
+          className="flex items-center gap-1.5 px-4 py-1.5 rounded-md font-mono text-[11px] tracking-wider uppercase transition-all disabled:opacity-40"
+          style={{ background: 'rgba(111,227,210,0.15)', border: '1px solid rgba(111,227,210,0.35)', color: 'var(--c-teal)' }}
+        >
+          {isPending ? <Loader2 size={11} className="animate-spin" /> : <Plus size={11} />}
+          Save
+        </button>
+        <button
+          type="button"
+          onClick={() => { clear(); setOpen(false) }}
+          className="px-3 py-1.5 rounded-md font-mono text-[11px] tracking-wider uppercase transition-colors"
+          style={{ color: 'var(--c-text-muted)' }}
+        >
+          Cancel
+        </button>
+      </div>
+    </motion.form>
+  )
+}
+
 // ── Main vault panel ────────────────────────────────────────────────────────
-function VaultPanel({ sections }: { sections: VaultSectionAPI[] }) {
+function VaultPanel({ sections, pin, onSectionsChange }: {
+  sections: VaultSectionAPI[]
+  pin: string
+  onSectionsChange: (updater: (prev: VaultSectionAPI[]) => VaultSectionAPI[]) => void
+}) {
   const close      = useVaultStore((s) => s.close)
   const [activeTab, setActiveTab] = useState(sections[0]?.slug ?? '')
+  const [deletingId, setDeletingId] = useState<number | null>(null)
+  const deleteItem = useVaultItemDelete()
 
   const section = sections.find((s) => s.slug === activeTab) ?? sections[0]
+
+  const handleDelete = (id: number) => {
+    setDeletingId(id)
+    deleteItem.mutate(
+      { pin, id },
+      {
+        onSuccess: () =>
+          onSectionsChange((prev) =>
+            prev.map((s) => ({ ...s, items: s.items.filter((i) => i.id !== id) })),
+          ),
+        onSettled: () => setDeletingId(null),
+      },
+    )
+  }
+
+  const handleAdded = (slug: string, item: VaultItemAPI) => {
+    onSectionsChange((prev) =>
+      prev.map((s) => (s.slug === slug ? { ...s, items: [...s.items, item] } : s)),
+    )
+  }
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') close() }
@@ -307,15 +530,26 @@ function VaultPanel({ sections }: { sections: VaultSectionAPI[] }) {
               transition={{ duration: 0.18 }}
               className="space-y-2"
             >
-              {section.items.length === 0 ? (
-                <p className="font-mono text-[11px] text-center py-8" style={{ color: 'rgba(255,255,255,0.2)' }}>
-                  No items yet — add some in the Django admin.
+              {section.items.length === 0 && (
+                <p className="font-mono text-[11px] text-center py-6" style={{ color: 'rgba(255,255,255,0.2)' }}>
+                  No items yet — add one below.
                 </p>
-              ) : (
-                section.items.map((item) => (
-                  <ItemRow key={item.id} item={item} />
-                ))
               )}
+              {section.items.map((item) => (
+                <ItemRow
+                  key={item.id}
+                  item={item}
+                  onDelete={() => handleDelete(item.id)}
+                  isDeleting={deletingId === item.id}
+                />
+              ))}
+              <AddItemForm
+                key={section.slug}
+                sectionSlug={section.slug}
+                pin={pin}
+                nextOrder={section.items.length}
+                onAdded={(item) => handleAdded(section.slug, item)}
+              />
             </motion.div>
           </AnimatePresence>
         </div>
@@ -341,10 +575,16 @@ function VaultPanel({ sections }: { sections: VaultSectionAPI[] }) {
 export function Vault() {
   const { isOpen } = useVaultStore()
   const [sections, setSections] = useState<VaultSectionAPI[] | null>(null)
+  // PIN kept in memory only, for authenticating add/delete requests —
+  // wiped together with the data when the vault closes
+  const [pin, setPin] = useState('')
 
   // Reset sections when vault closes so user must PIN again next time
   useEffect(() => {
-    if (!isOpen) setSections(null)
+    if (!isOpen) {
+      setSections(null)
+      setPin('')
+    }
   }, [isOpen])
 
   return (
@@ -360,9 +600,13 @@ export function Vault() {
           transition={{ duration: 0.25 }}
         >
           {sections ? (
-            <VaultPanel sections={sections} />
+            <VaultPanel
+              sections={sections}
+              pin={pin}
+              onSectionsChange={(updater) => setSections((prev) => (prev ? updater(prev) : prev))}
+            />
           ) : (
-            <PinGate onUnlock={(s) => setSections(s)} />
+            <PinGate onUnlock={(s, p) => { setSections(s); setPin(p) }} />
           )}
         </motion.div>
       )}

@@ -240,13 +240,23 @@ function CameraController() {
     return () => window.removeEventListener('mousemove', onMove)
   }, [])
 
+  const scrollSmooth = useRef(0)
+
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime()
     smooth.current.x += (mouse.current.x - smooth.current.x) * 0.032
     smooth.current.y += (mouse.current.y - smooth.current.y) * 0.032
+
+    // Scroll-linked dolly: camera pulls back and drifts up as the hero
+    // scrolls out, giving the gems real 3D depth against the page motion.
+    // window.scrollY already moves smoothly under Lenis, plus extra lerp here.
+    const p = Math.min(window.scrollY / window.innerHeight, 1)
+    scrollSmooth.current += (p - scrollSmooth.current) * 0.08
+
     camera.position.x = Math.sin(t * 0.07) * 0.38 + smooth.current.x * 0.95
-    camera.position.y = Math.sin(t * 0.05) * 0.24 + smooth.current.y * 0.52
-    camera.lookAt(0, 0, 0)
+    camera.position.y = Math.sin(t * 0.05) * 0.24 + smooth.current.y * 0.52 + scrollSmooth.current * 1.8
+    camera.position.z = 10 + scrollSmooth.current * 4.5
+    camera.lookAt(0, scrollSmooth.current * 2.4, 0)
   })
 
   return null

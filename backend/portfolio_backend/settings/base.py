@@ -98,6 +98,7 @@ REST_FRAMEWORK = {
     'DEFAULT_THROTTLE_RATES': {
         'anon': '60/minute',
         'vault_unlock': '10/minute',
+        'vault_mutate': '30/minute',
     },
 }
 
@@ -110,6 +111,10 @@ CORS_ALLOWED_ORIGINS = [
     for o in env.list('CORS_ALLOWED_ORIGINS', default=['http://localhost:5173', 'http://localhost:3000'])
 ]
 CORS_ALLOW_CREDENTIALS = False
+
+# Vault mutations authenticate with a custom header — allow it through CORS
+from corsheaders.defaults import default_headers  # noqa: E402
+CORS_ALLOW_HEADERS = [*default_headers, 'x-vault-pin']
 
 # Email
 EMAIL_BACKEND = env('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')

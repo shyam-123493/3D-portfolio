@@ -36,14 +36,21 @@ function useActiveSection() {
 }
 
 export function NavBar() {
-  const { navOpen, toggleNav, setNavOpen, scrollY, bootComplete, theme, toggleTheme } = useUIStore()
+  const navOpen = useUIStore((s) => s.navOpen)
+  const toggleNav = useUIStore((s) => s.toggleNav)
+  const setNavOpen = useUIStore((s) => s.setNavOpen)
+  const bootComplete = useUIStore((s) => s.bootComplete)
+  const theme = useUIStore((s) => s.theme)
+  const toggleTheme = useUIStore((s) => s.toggleTheme)
+  // Boolean selector — re-renders only when crossing the 60px threshold,
+  // not on every scroll frame like subscribing to raw scrollY would.
+  const scrolled = useUIStore((s) => s.scrollY > 60)
   const navRef = useRef<HTMLElement>(null)
   const location = useLocation()
   const { data: settings } = useSiteSettings()
   const activeSection = useActiveSection()
 
   const firstName = settings?.name?.split(' ')[0] ?? 'Ghanshyam'
-  const scrolled = scrollY > 60
 
   useEffect(() => {
     setNavOpen(false)

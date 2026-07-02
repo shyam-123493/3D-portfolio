@@ -1,5 +1,5 @@
 import { useRef, useMemo, Suspense } from 'react'
-import { Canvas, useFrame } from '@react-three/fiber'
+import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { Sphere, Points, PointMaterial, Line } from '@react-three/drei'
 import * as THREE from 'three'
 import { useSceneStore } from '@/stores/sceneStore'
@@ -71,12 +71,35 @@ function FloatingStars({ count }: { count: number }) {
   )
 }
 
+// Pans the camera gently as the section scrolls through the viewport,
+// so the constellation drifts with real 3D parallax against the page.
+function CameraDrift() {
+  const { camera, gl } = useThree()
+  const smooth = useRef<number | null>(null)
+
+  useFrame((_, delta) => {
+    const rect = gl.domElement.getBoundingClientRect()
+    const vh = window.innerHeight
+    const p = Math.min(Math.max((vh - rect.top) / (vh + rect.height), 0), 1)
+
+    if (smooth.current === null) smooth.current = p
+    smooth.current += (p - smooth.current) * Math.min(delta * 4, 1)
+
+    camera.position.y = 0.5 + (0.5 - smooth.current) * 1.6
+    camera.position.x = 1.5 + (smooth.current - 0.5) * 0.8
+    camera.lookAt(0, 0, 0)
+  })
+
+  return null
+}
+
 function SceneContent({ entries, activeId }: { entries: TimelineEntry[]; activeId: number | null }) {
   const { qualityLevel } = useSceneStore()
   const starCount = Math.floor(getParticleCount(qualityLevel) * 0.4)
 
   return (
     <>
+      <CameraDrift />
       <ambientLight intensity={0.2} />
       <pointLight position={[0, 5, 5]} intensity={0.5} color="#0EA5E9" />
       <ConstellationLines entries={entries} />

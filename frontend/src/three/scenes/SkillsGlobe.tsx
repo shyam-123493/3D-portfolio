@@ -193,6 +193,7 @@ function GlobePlanet({ radius }: { radius: number }) {
 // ── Scene ─────────────────────────────────────────────────────────────────────
 function GlobeContent() {
   const groupRef = useRef<THREE.Group>(null)
+  const scrollSpin = useRef<{ current: number; base: number } | null>(null)
   const RADIUS = 2.4
 
   const positions = useMemo(() => fibonacciSphere(SKILLS.length, RADIUS), [])
@@ -216,7 +217,17 @@ function GlobeContent() {
   useFrame(({ clock }) => {
     if (!groupRef.current) return
     const t = clock.getElapsedTime()
-    groupRef.current.rotation.y = t * 0.115
+
+    // Scroll-reactive spin — scrolling physically rotates the globe on top
+    // of its idle drift. Baselined to the mount scroll position so there is
+    // no jump on first frame; smoothed so it feels weighty, not twitchy.
+    if (scrollSpin.current === null) {
+      scrollSpin.current = { current: 0, base: window.scrollY }
+    }
+    const targetSpin = (window.scrollY - scrollSpin.current.base) * 0.0009
+    scrollSpin.current.current += (targetSpin - scrollSpin.current.current) * 0.06
+
+    groupRef.current.rotation.y = t * 0.115 + scrollSpin.current.current
     groupRef.current.rotation.x = Math.sin(t * 0.25) * 0.1
   })
 

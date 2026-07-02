@@ -1,5 +1,15 @@
 import { useRef } from 'react'
-import { motion, useInView } from 'framer-motion'
+import {
+  motion,
+  useAnimationFrame,
+  useInView,
+  useMotionValue,
+  useReducedMotion,
+  useScroll,
+  useSpring,
+  useTransform,
+  useVelocity,
+} from 'framer-motion'
 
 interface Props {
   items: string[]
@@ -8,6 +18,12 @@ interface Props {
   accent?: string
   dim?: boolean
   size?: 'sm' | 'md'
+}
+
+/* Wraps v into [min, max) so the 4×-repeated track loops seamlessly */
+function wrap(min: number, max: number, v: number) {
+  const range = max - min
+  return ((((v - min) % range) + range) % range) + min
 }
 
 export function MarqueeRibbon({
@@ -20,9 +36,40 @@ export function MarqueeRibbon({
 }: Props) {
   const ref = useRef<HTMLDivElement>(null)
   const inView = useInView(ref, { once: true, margin: '-20px' })
+  const reducedMotion = useReducedMotion()
 
   const repeated = [...items, ...items, ...items, ...items]
-  const animName = direction === 'left' ? 'marquee-left' : 'marquee-right'
+
+  // ── Scroll-velocity reactive drift ────────────────────────────────────────
+  // The ribbon drifts at a constant base speed, then accelerates (and can
+  // briefly reverse) with scroll velocity, leaning into the motion with a
+  // subtle skew — the whole page feels physically connected to the scroll.
+  const baseX = useMotionValue(0)
+  const { scrollY } = useScroll()
+  const scrollVelocity = useVelocity(scrollY)
+  const smoothVelocity = useSpring(scrollVelocity, { damping: 50, stiffness: 380 })
+  const velocityFactor = useTransform(smoothVelocity, [-1200, 0, 1200], [-4, 0, 4], {
+    clamp: false,
+  })
+  const skewX = useTransform(smoothVelocity, [-1200, 1200], ['1.6deg', '-1.6deg'])
+
+  // Old CSS animation covered -50% of the track in `speed` seconds
+  const baseVelocity = 50 / speed // % per second
+  const dir = direction === 'left' ? -1 : 1
+
+  // Content repeats 4×, so -25% is exactly one item-set — wrap there
+  const x = useTransform(baseX, (v) => `${wrap(-25, 0, v)}%`)
+
+  useAnimationFrame((_, delta) => {
+    if (reducedMotion) return
+    const dt = Math.min(delta, 64) / 1000 // clamp tab-switch spikes
+    let moveBy = dir * baseVelocity * dt
+    // Scroll down speeds the ribbon along its own direction; fast opposite
+    // scrolling can momentarily drag it backwards
+    moveBy += dir * Math.abs(velocityFactor.get()) * baseVelocity * dt * 2
+    moveBy += velocityFactor.get() * baseVelocity * dt
+    baseX.set(baseX.get() + moveBy)
+  })
 
   const textSize = size === 'sm'
     ? 'text-[10px] sm:text-[11px] tracking-[0.22em]'
@@ -52,11 +99,13 @@ export function MarqueeRibbon({
         style={{ background: 'linear-gradient(to left, var(--c-bg), transparent)' }}
       />
 
-      <div
+      <motion.div
         className="flex whitespace-nowrap"
         style={{
-          animation: `${animName} ${speed}s linear infinite`,
+          x,
+          skewX: reducedMotion ? undefined : skewX,
           width: 'max-content',
+          willChange: 'transform',
         }}
       >
         {repeated.map((item, i) => (
@@ -68,7 +117,7 @@ export function MarqueeRibbon({
             />
           </span>
         ))}
-      </div>
+      </motion.div>
     </motion.div>
   )
 }

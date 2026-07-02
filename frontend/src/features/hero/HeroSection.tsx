@@ -1,5 +1,5 @@
-import { lazy, Suspense, useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { lazy, Suspense, useState, useEffect, useRef } from 'react'
+import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion'
 import { MapPin, Briefcase, Star, ChevronDown } from 'lucide-react'
 import { useSceneStore } from '@/stores/sceneStore'
 import { useSiteSettings } from '@/hooks/usePortfolioData'
@@ -94,12 +94,26 @@ function fade(delay: number) {
 export function HeroSection() {
   const { webGLSupported, reducedMotion } = useSceneStore()
   const { data: settings } = useSiteSettings()
+  const sectionRef = useRef<HTMLElement>(null)
+
+  // Exit choreography — as the hero scrolls out, content drifts down,
+  // shrinks slightly and fades (transform/opacity only, GPU-composited)
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ['start start', 'end start'],
+  })
+  const contentY       = useTransform(scrollYProgress, [0, 1], [0, 150])
+  const contentScale   = useTransform(scrollYProgress, [0, 1], [1, 0.94])
+  const contentOpacity = useTransform(scrollYProgress, [0, 0.55], [1, 0])
+  const photoY         = useTransform(scrollYProgress, [0, 1], [0, 90])
+  const photoOpacity   = useTransform(scrollYProgress, [0.1, 0.8], [1, 0.25])
 
   const name = settings?.name ?? 'Ghanshyam Desale'
   const firstName = name.split(' ')[0]
 
   return (
     <section
+      ref={sectionRef}
       id="hero"
       className="relative min-h-screen overflow-hidden flex flex-col"
       aria-label="Hero — Introduction"
@@ -152,7 +166,10 @@ export function HeroSection() {
       <div className="ag-depth-bg absolute inset-0 pointer-events-none opacity-50" aria-hidden="true" />
 
       {/* Profile photo — larger, full-height with subtle parallax */}
-      <div className="absolute inset-0 flex justify-center overflow-hidden pointer-events-none">
+      <motion.div
+        className="absolute inset-0 flex justify-center overflow-hidden pointer-events-none"
+        style={reducedMotion ? undefined : { y: photoY, opacity: photoOpacity }}
+      >
         <ParallaxLayer speed={0.12} direction="up" style={{ position: 'absolute', bottom: 0, left: '50%', transform: 'translateX(-50%)' }}>
           <img
             src="/profile.png"
@@ -168,7 +185,7 @@ export function HeroSection() {
             draggable={false}
           />
         </ParallaxLayer>
-      </div>
+      </motion.div>
 
       {/* Gradient overlay — theme-aware */}
       <div
@@ -190,6 +207,12 @@ export function HeroSection() {
           </Suspense>
         </div>
       )}
+
+      {/* Foreground content — shares the scroll-exit choreography */}
+      <motion.div
+        className="relative z-20 flex-1 flex flex-col"
+        style={reducedMotion ? undefined : { y: contentY, scale: contentScale, opacity: contentOpacity }}
+      >
 
       {/* Top-left: Angular · PWA · Mumbai tag */}
       <motion.div
@@ -343,6 +366,8 @@ export function HeroSection() {
         <div className="scroll-bounce" style={{ color: 'rgba(var(--c-teal-rgb), 0.55)' }}>
           <ChevronDown size={14} />
         </div>
+      </motion.div>
+
       </motion.div>
     </section>
   )
