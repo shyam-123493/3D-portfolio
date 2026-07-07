@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Copy, Check, ExternalLink, Lock, Loader2, AlertCircle, Plus, Trash2 } from 'lucide-react'
 import { useVaultStore } from '@/stores/vaultStore'
@@ -442,13 +443,63 @@ function VaultPanel({ sections, pin, onSectionsChange }: {
     )
   }
 
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') close() }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [close])
-
-  if (!section) return null
+  // An unlocked-but-empty vault (fresh database, no sections seeded yet) must
+  // still render the panel chrome — returning null here leaves the user staring
+  // at a bare backdrop with no feedback and no close button.
+  if (!section) {
+    return (
+      <div
+        className="fixed inset-0 z-[99999] flex items-center justify-center p-4 sm:p-8"
+        onClick={(e) => { if (e.target === e.currentTarget) close() }}
+      >
+        <motion.div
+          className="relative w-full max-w-md rounded-2xl overflow-hidden"
+          style={{
+            background: '#0A0A0E',
+            border: '1px solid rgba(111,227,210,0.18)',
+            boxShadow: '0 0 80px rgba(111,227,210,0.06), 0 40px 100px rgba(0,0,0,0.6)',
+          }}
+          initial={{ opacity: 0, scale: 0.94, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+        >
+          <div
+            className="flex items-center justify-between px-5 py-4"
+            style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}
+          >
+            <span className="font-mono text-[11px] tracking-[0.2em] uppercase" style={{ color: 'var(--c-text-muted)' }}>
+              Personal Vault
+            </span>
+            <button
+              onClick={close}
+              aria-label="Close vault"
+              className="w-7 h-7 rounded-md flex items-center justify-center transition-all hover:bg-white/10"
+              style={{ color: 'var(--c-text-muted)' }}
+            >
+              <X size={14} />
+            </button>
+          </div>
+          <div className="p-8 text-center space-y-3">
+            <p className="font-mono text-sm" style={{ color: 'var(--c-text)' }}>
+              Vault unlocked — but it's empty.
+            </p>
+            <p className="font-mono text-[11px] leading-relaxed" style={{ color: 'var(--c-text-muted)' }}>
+              No sections exist in the database yet. Seed them with
+              <span style={{ color: 'var(--c-teal)' }}> python manage.py seed_vault </span>
+              or add sections in the Django admin.
+            </p>
+            <button
+              onClick={close}
+              className="mt-2 px-5 py-2 rounded-md font-mono text-[11px] tracking-wider uppercase transition-all"
+              style={{ background: 'rgba(111,227,210,0.15)', border: '1px solid rgba(111,227,210,0.35)', color: 'var(--c-teal)' }}
+            >
+              Close
+            </button>
+          </div>
+        </motion.div>
+      </div>
+    )
+  }
 
   return (
     <div
@@ -573,7 +624,7 @@ function VaultPanel({ sections, pin, onSectionsChange }: {
 
 // ── Root export ─────────────────────────────────────────────────────────────
 export function Vault() {
-  const { isOpen } = useVaultStore()
+  const { isOpen, close } = useVaultStore()
   const [sections, setSections] = useState<VaultSectionAPI[] | null>(null)
   // PIN kept in memory only, for authenticating add/delete requests —
   // wiped together with the data when the vault closes
@@ -587,7 +638,18 @@ export function Vault() {
     }
   }, [isOpen])
 
-  return (
+  // Escape lives here, not in the panel, so it closes the vault from every
+  // state — PIN gate, item panel, or the empty-vault notice
+  useEffect(() => {
+    if (!isOpen) return
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') close() }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [isOpen, close])
+
+  // Portalled to <body>: inside <main> (zIndex: 1 stacking context) the
+  // overlay would sit below the fixed NavBar regardless of its own z-index
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <motion.div
@@ -610,6 +672,7 @@ export function Vault() {
           )}
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
   )
 }
