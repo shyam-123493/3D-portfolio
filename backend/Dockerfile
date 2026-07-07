@@ -19,9 +19,7 @@ RUN SECRET_KEY=build-only-placeholder python manage.py collectstatic --noinput
 
 EXPOSE 8000
 
-# loaddata runs on every boot so repo fixtures are the source of truth for
-# site content (fixed pks make it idempotent). Note: this also reverts any
-# edits made through the Django admin on each restart/deploy.
-# seed_vault only fills an empty vault — unlike loaddata it never touches
-# existing rows, because vault items are edited live through the UI.
-CMD ["sh", "-c", "python manage.py migrate --noinput && python manage.py loaddata fixtures/initial_data.json && python manage.py seed_vault && gunicorn portfolio_backend.wsgi:application --bind 0.0.0.0:${PORT:-8000} --workers 2 --timeout 60"]
+# bootstrap_data and seed_vault only fill an EMPTY database — the Django
+# admin is the source of truth for live content, so deploys must never
+# overwrite or resurrect rows edited/deleted through the admin.
+CMD ["sh", "-c", "python manage.py migrate --noinput && python manage.py bootstrap_data && python manage.py seed_vault && gunicorn portfolio_backend.wsgi:application --bind 0.0.0.0:${PORT:-8000} --workers 2 --timeout 60"]
