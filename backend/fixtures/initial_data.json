@@ -98,6 +98,19 @@
   },
   {
     "model": "experience.experience",
+    "pk": 1,
+    "fields": {
+      "date": "May 2022",
+      "title": "B.E. Mechanical Engineering",
+      "organization": "Shri Gulabrao Deokar College of Engineering",
+      "description": "Graduated with CGPA 7.96. Strong analytical and systems-thinking foundation, pivot into software engineering.",
+      "entry_type": "education",
+      "tags": ["CGPA 7.96", "Systems Thinking"],
+      "order": 1
+    }
+  },
+  {
+    "model": "experience.experience",
     "pk": 2,
     "fields": {
       "date": "2022",

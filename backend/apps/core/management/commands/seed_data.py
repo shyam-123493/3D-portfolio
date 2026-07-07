@@ -207,6 +207,7 @@ class Command(BaseCommand):
 
     def _seed_experience(self):
         ENTRIES = [
+            dict(date='May 2022', title='B.E. Mechanical Engineering', organization='Shri Gulabrao Deokar College of Engineering', description='Graduated with CGPA 7.96. Strong analytical and systems-thinking foundation.', entry_type='education', tags=['CGPA 7.96', 'Systems Thinking'], order=1),
             dict(date='2022', title='Full Stack Developer Training', organization='', description='Intensive training covering frontend, backend, databases, and deployment practices.', entry_type='achievement', tags=['HTML/CSS', 'JavaScript', 'React', 'Node.js'], order=2),
             dict(date='Aug 2022', title='Angular Developer', organization='KSW Technologies', description='First professional role building Angular applications, REST API integrations, and reusable modules.', entry_type='work', tags=['Angular', 'TypeScript', 'REST APIs'], order=3),
             dict(date='Nov 2023', title='Angular Developer', organization='SnapWork Technologies', description="Leading Angular PWA development for Bajaj Finserv's bill payment platform. Autopay module, IndexedDB, native bridge, analytics.", entry_type='work', tags=['PWA', 'Fintech', 'IndexedDB', 'Analytics', 'AWS S3'], order=4),

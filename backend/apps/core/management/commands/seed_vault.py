@@ -84,7 +84,5 @@ class Command(BaseCommand):
             section = VaultSection.objects.create(**section_data)
             for order, item in enumerate(items):
                 VaultItem.objects.create(section=section, order=order, **item)
-            # ASCII-only output: emoji crash Windows consoles (cp1252) and
-            # an unhandled UnicodeEncodeError here would abort the boot chain
-            self.stdout.write(f'  OK {section.label} - {len(items)} items')
+            self.stdout.write(f'  OK {section.emoji} {section.label} — {len(items)} items')
         self.stdout.write(self.style.SUCCESS('Vault seeded.'))
