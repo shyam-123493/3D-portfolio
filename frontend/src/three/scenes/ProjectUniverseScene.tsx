@@ -5,6 +5,7 @@ import * as THREE from 'three'
 import { useSceneStore } from '@/stores/sceneStore'
 import { getParticleCount, getPixelRatio } from '@/three/utils/performance'
 import { FrameDriver } from '@/three/hooks/FrameDriver'
+import { useCanvasEnterTimeline } from '@/three/hooks/useCanvasEnterTimeline'
 import type { Project } from '@/types'
 
 const PROJECT_COLORS: Record<string, string> = {
@@ -61,15 +62,19 @@ function OrbitPath({ radius }: { radius: number }) {
 }
 
 // ─── Central sun ─────────────────────────────────────────────────────────────
-function CentralSun() {
+function CentralSun({ intro }: { intro: { v: number } }) {
+  const groupRef = useRef<THREE.Group>(null)
   const meshRef = useRef<THREE.Mesh>(null)
   useFrame(({ clock }) => {
     if (meshRef.current) {
       meshRef.current.rotation.y = clock.getElapsedTime() * 0.2
     }
+    if (groupRef.current) {
+      groupRef.current.scale.setScalar(Math.max(intro.v, 0.001))
+    }
   })
   return (
-    <group>
+    <group ref={groupRef}>
       {/* Core */}
       <Sphere ref={meshRef} args={[0.72, 48, 48]}>
         <meshStandardMaterial color="#6FE3D2" emissive="#6FE3D2" emissiveIntensity={6} metalness={0.1} roughness={0.2} />
@@ -93,15 +98,18 @@ function ProjectPlanet({
   orbitSpeed,
   orbitOffset,
   index,
+  intro,
 }: {
   project: Project
   orbitRadius: number
   orbitSpeed: number
   orbitOffset: number
   index: number
+  intro: { v: number }
 }) {
   const groupRef = useRef<THREE.Group>(null)
   const meshRef  = useRef<THREE.Mesh>(null)
+  const hoverScale = useRef(1)
   const { selectedProject, hoveredProject, setSelectedProject, setHoveredProject, isTransitioning } = useSceneStore()
 
   const color      = PROJECT_COLORS[project.slug] ?? '#6FE3D2'
@@ -112,20 +120,23 @@ function ProjectPlanet({
 
   useFrame(({ clock }, delta) => {
     if (!groupRef.current || !meshRef.current) return
-    const t = clock.getElapsedTime() + orbitOffset
-    groupRef.current.position.x = Math.cos(t * orbitSpeed) * orbitRadius
-    groupRef.current.position.z = Math.sin(t * orbitSpeed) * orbitRadius
+    // orbitOffset is an angle, applied after the speed multiply so planets
+    // actually spread around the sun instead of bunching in a line
+    const angle = clock.getElapsedTime() * orbitSpeed + orbitOffset
+    // intro.v sweeps 0 → 1 on section enter, flying the planet out from the
+    // sun to its orbit ("big bang" entrance)
+    const r = orbitRadius * intro.v
+    groupRef.current.position.x = Math.cos(angle) * r
+    groupRef.current.position.z = Math.sin(angle) * r
     // delta-based so spin speed is identical on 60Hz and 144Hz displays
     meshRef.current.rotation.y += delta * 0.48
-    if (isSelected) {
-      // pulse scale slightly
-      const s = 1.45 + Math.sin(clock.getElapsedTime() * 2.5) * 0.04
-      groupRef.current.scale.setScalar(s)
-    } else if (isHovered) {
-      groupRef.current.scale.setScalar(1.18)
-    } else {
-      groupRef.current.scale.setScalar(1.0)
-    }
+
+    // Hover/selection scale eases toward its target instead of snapping
+    const target = isSelected
+      ? 1.45 + Math.sin(clock.getElapsedTime() * 2.5) * 0.04
+      : isHovered ? 1.18 : 1.0
+    hoverScale.current += (target - hoverScale.current) * Math.min(delta * 9, 1)
+    groupRef.current.scale.setScalar(hoverScale.current * Math.max(0.2 + 0.8 * intro.v, 0.001))
   })
 
   const handleClick = useCallback(() => {
@@ -279,6 +290,18 @@ function SceneContent({ projects }: { projects: Project[] }) {
   const { qualityLevel } = useSceneStore()
   const particleCount = Math.floor(getParticleCount(qualityLevel) * 0.9)
 
+  const visible = projects.slice(0, 5)
+
+  // Entrance: sun ignites first, then planets fly out from the center to
+  // their orbits one by one, the first time the section scrolls into view.
+  const sunIntro = useRef({ v: 0 })
+  const planetIntros = useMemo(() => visible.map(() => ({ v: 0 })), [visible.length]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useCanvasEnterTimeline((tl) => {
+    tl.to(sunIntro.current, { v: 1, duration: 0.9, ease: 'back.out(1.7)' })
+      .to(planetIntros, { v: 1, duration: 1.5, ease: 'power3.inOut', stagger: 0.14 }, '-=0.45')
+  }, [visible.length])
+
   return (
     <>
       <ambientLight intensity={0.12} />
@@ -288,11 +311,11 @@ function SceneContent({ projects }: { projects: Project[] }) {
 
       <CameraController />
       <GridPlane />
-      <CentralSun />
+      <CentralSun intro={sunIntro.current} />
 
       {ORBIT_RADII.map((r) => <OrbitPath key={r} radius={r} />)}
 
-      {projects.slice(0, 5).map((project, i) => (
+      {visible.map((project, i) => (
         <ProjectPlanet
           key={project.slug}
           project={project}
@@ -300,6 +323,7 @@ function SceneContent({ projects }: { projects: Project[] }) {
           orbitSpeed={0.035 - i * 0.005}
           orbitOffset={(Math.PI / 2.5) * i}
           index={i}
+          intro={planetIntros[i]}
         />
       ))}
 

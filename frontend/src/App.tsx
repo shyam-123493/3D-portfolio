@@ -6,7 +6,10 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 1000 * 60 * 5,
-      retry: 1,
+      // Enough retries to ride out a Render cold start — queries stay in
+      // `isLoading` (skeletons visible) until a retry finally succeeds.
+      retry: 3,
+      retryDelay: (attempt) => Math.min(2000 * 2 ** attempt, 15000),
     },
   },
 })

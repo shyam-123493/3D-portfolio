@@ -5,6 +5,7 @@ import * as THREE from 'three'
 import { useSceneStore } from '@/stores/sceneStore'
 import { getPixelRatio } from '@/three/utils/performance'
 import { FrameDriver } from '@/three/hooks/FrameDriver'
+import { useCanvasEnterTimeline } from '@/three/hooks/useCanvasEnterTimeline'
 
 const SKILLS = [
   { name: 'Angular',     color: '#DD0031', glow: '#FF3366', size: 1.3 },
@@ -194,7 +195,14 @@ function GlobePlanet({ radius }: { radius: number }) {
 function GlobeContent() {
   const groupRef = useRef<THREE.Group>(null)
   const scrollSpin = useRef<{ current: number; base: number } | null>(null)
+  // Entrance state — globe starts small and wound back, then scales up and
+  // spins into place the first time the section scrolls into view.
+  const intro = useRef({ scale: 0.55, spin: -1.35 })
   const RADIUS = 2.4
+
+  useCanvasEnterTimeline((tl) => {
+    tl.to(intro.current, { scale: 1, spin: 0, duration: 1.7, ease: 'expo.out' })
+  })
 
   const positions = useMemo(() => fibonacciSphere(SKILLS.length, RADIUS), [])
 
@@ -227,8 +235,9 @@ function GlobeContent() {
     const targetSpin = (window.scrollY - scrollSpin.current.base) * 0.0009
     scrollSpin.current.current += (targetSpin - scrollSpin.current.current) * 0.06
 
-    groupRef.current.rotation.y = t * 0.115 + scrollSpin.current.current
+    groupRef.current.rotation.y = t * 0.115 + scrollSpin.current.current + intro.current.spin
     groupRef.current.rotation.x = Math.sin(t * 0.25) * 0.1
+    groupRef.current.scale.setScalar(intro.current.scale)
   })
 
   return (

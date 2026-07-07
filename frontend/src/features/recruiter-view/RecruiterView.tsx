@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Download, MapPin, Mail, Phone, Linkedin, Github, CheckCircle2 } from 'lucide-react'
 import { useUIStore } from '@/stores/uiStore'
@@ -68,12 +69,16 @@ export function RecruiterView() {
 
   const featuredProjects = projects?.filter((p) => p.featured) ?? []
 
-  return (
+  // Portalled to <body>: rendered inside <main> (zIndex: 1 stacking context)
+  // the drawer can never paint above the fixed NavBar, which covers the top
+  // 56px — including the close button — on mobile where the drawer is
+  // full-width and Escape isn't available.
+  return createPortal(
     <AnimatePresence>
       {recruiterViewOpen && (
         <>
           <motion.div
-            className="fixed inset-0 z-50 bg-bg-primary/85 backdrop-blur-sm"
+            className="fixed inset-0 z-[9600] bg-bg-primary/85 backdrop-blur-sm"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -82,7 +87,7 @@ export function RecruiterView() {
           />
 
           <motion.aside
-            className="fixed inset-y-0 right-0 z-50 w-full max-w-2xl bg-bg-secondary border-l border-border-subtle overflow-y-auto custom-scrollbar"
+            className="fixed inset-y-0 right-0 z-[9610] w-full max-w-2xl bg-bg-secondary border-l border-border-subtle overflow-y-auto custom-scrollbar"
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
@@ -119,7 +124,7 @@ export function RecruiterView() {
                     <h3 className="font-display font-bold text-2xl text-text-primary mb-1">{name}</h3>
                     <p className="text-accent-teal font-medium mb-4">Angular Developer · Fintech Engineer · Full-Stack AI Explorer</p>
                     <p className="text-text-secondary text-sm leading-relaxed mb-5">
-                      3+ years of professional experience building enterprise-scale Angular applications for India's leading fintech platforms.
+                      {settings?.yearsExperience ?? 3}+ years of professional experience building enterprise-scale Angular applications for India's leading fintech platforms.
                       Specialized in Progressive Web Apps, offline-first architectures, analytics instrumentation, and native bridge integrations.
                     </p>
                     <div className="flex flex-wrap gap-4 text-sm">
@@ -251,6 +256,7 @@ export function RecruiterView() {
           </motion.aside>
         </>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
   )
 }

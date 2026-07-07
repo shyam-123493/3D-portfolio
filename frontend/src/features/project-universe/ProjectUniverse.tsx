@@ -332,7 +332,7 @@ export function ProjectUniverse() {
 
             {isError && (
               <p className="text-red-400 text-sm">
-                Failed to load projects. Make sure the Django backend is running on port 8000.
+                Couldn't load projects — the server may still be waking up. Please refresh in a moment.
               </p>
             )}
 

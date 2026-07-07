@@ -305,7 +305,7 @@ export function PersonalProjects() {
 
           {isError && (
             <p className="mt-14 font-mono text-sm" style={{ color: 'rgba(239,68,68,0.7)' }}>
-              Could not load projects — make sure the backend is running on port 8000.
+              Couldn't load projects — the server may still be waking up. Please refresh in a moment.
             </p>
           )}
 

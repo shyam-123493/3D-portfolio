@@ -249,8 +249,8 @@ export function HeroSection() {
         </div>
 
         {[
-          { icon: Briefcase, label: '3+ Years Exp.' },
-          { icon: MapPin,    label: 'Mumbai, India' },
+          { icon: Briefcase, label: `${settings?.yearsExperience ?? 3}+ Years Exp.` },
+          { icon: MapPin,    label: settings?.location ?? 'Mumbai, India' },
           { icon: Star,      label: '5 Production Apps' },
         ].map(({ icon: Icon, label }) => (
           <div

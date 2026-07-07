@@ -4,7 +4,10 @@ const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000'
 
 export const apiClient = axios.create({
   baseURL: BASE_URL,
-  timeout: 10000,
+  // Render's free tier spins the backend down when idle; the first request
+  // after a sleep takes ~50s to answer, so the timeout must outlast a cold
+  // start or every first visit fails before the server even wakes up.
+  timeout: 60000,
   headers: { 'Content-Type': 'application/json' },
 })
 
@@ -45,4 +48,13 @@ export const api = {
     message: string
     website?: string
   }) => apiClient.post('/api/contact/', data),
+  bookMeeting: (data: {
+    name: string
+    email: string
+    date: string
+    time: string
+    duration: string
+    topic: string
+    notes?: string
+  }) => apiClient.post('/api/meeting/', data),
 }

@@ -19,4 +19,7 @@ RUN SECRET_KEY=build-only-placeholder python manage.py collectstatic --noinput
 
 EXPOSE 8000
 
-CMD ["sh", "-c", "python manage.py migrate --noinput && gunicorn portfolio_backend.wsgi:application --bind 0.0.0.0:${PORT:-8000} --workers 2 --timeout 60"]
+# loaddata runs on every boot so repo fixtures are the source of truth for
+# site content (fixed pks make it idempotent). Note: this also reverts any
+# edits made through the Django admin on each restart/deploy.
+CMD ["sh", "-c", "python manage.py migrate --noinput && python manage.py loaddata fixtures/initial_data.json && gunicorn portfolio_backend.wsgi:application --bind 0.0.0.0:${PORT:-8000} --workers 2 --timeout 60"]

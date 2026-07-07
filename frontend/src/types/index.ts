@@ -110,5 +110,7 @@ export interface SiteSettings {
   linkedinUrl: string
   githubUrl: string
   resumeUrl: string
+  /** Computed server-side from the earliest work experience entry */
+  yearsExperience?: number
   available_for_work?: boolean
 }

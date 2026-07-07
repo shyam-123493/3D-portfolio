@@ -1,7 +1,7 @@
 import { lazy, Suspense, useRef } from 'react'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import { SectionHeading } from '@/components/ui/SectionHeading'
-import { useExperience } from '@/hooks/usePortfolioData'
+import { useExperience, useSiteSettings } from '@/hooks/usePortfolioData'
 import { useSceneStore } from '@/stores/sceneStore'
 import type { TimelineEntry } from '@/types'
 
@@ -82,7 +82,9 @@ function ExperienceRow({ entry, index }: { entry: TimelineEntry; index: number }
 export function JourneySection() {
   const { webGLSupported, reducedMotion } = useSceneStore()
   const { data: timeline, isLoading, isError } = useExperience()
+  const { data: settings } = useSiteSettings()
   const entries = (timeline ?? []).filter((e) => e.type === 'work' || e.type === 'education')
+  const years = settings?.yearsExperience ?? 3
 
   const sectionRef = useRef<HTMLElement>(null)
   const { scrollYProgress } = useScroll({ target: sectionRef, offset: ['start end', 'end start'] })
@@ -109,7 +111,7 @@ export function JourneySection() {
         <SectionHeading
           label="02 · Experience"
           title="The journey so far"
-          subtitle="From mechanical engineering to building enterprise fintech systems — a deliberate pivot and three years of deep specialization."
+          subtitle={`From mechanical engineering to building enterprise fintech systems — a deliberate pivot and ${years}+ years of deep specialization.`}
         />
 
         <div className="mt-10 sm:mt-14 relative">
@@ -144,7 +146,7 @@ export function JourneySection() {
           )}
           {isError && (
             <p className="text-red-400 text-sm py-8">
-              Failed to load timeline. Ensure the backend is running.
+              Couldn't load the timeline — the server may still be waking up. Please refresh in a moment.
             </p>
           )}
           {entries.map((entry, i) => (

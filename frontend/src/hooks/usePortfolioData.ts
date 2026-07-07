@@ -1,4 +1,5 @@
 import { useQuery, useMutation } from '@tanstack/react-query'
+import axios from 'axios'
 import { api } from '@/services/api'
 import type { Project, TimelineEntry, Achievement, Certification, SiteSettings } from '@/types'
 
@@ -126,6 +127,7 @@ export function useSiteSettings() {
         linkedinUrl: d.linkedin_url,
         githubUrl: d.github_url,
         resumeUrl: d.resume_url ?? '/resume-ghanshyam-desale.pdf',
+        yearsExperience: d.years_experience,
         available_for_work: d.available_for_work,
       }
     },
@@ -237,17 +239,24 @@ export interface MeetingData {
 
 export function useMeetingMutation() {
   return useMutation({
+    // Goes through the shared axios client so the request hits the configured
+    // API base URL in production (a relative fetch only worked behind the dev
+    // proxy), and surfaces the backend's actual error message — DRF throttle
+    // responses use `detail`, our validation errors use `error`.
     mutationFn: async (data: MeetingData) => {
-      const res = await fetch('/api/meeting/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      })
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}))
-        throw new Error(err.error ?? 'Failed to book meeting')
+      try {
+        const res = await api.bookMeeting(data)
+        return res.data
+      } catch (e) {
+        if (axios.isAxiosError(e) && e.response) {
+          if (e.response.status === 429) {
+            throw new Error('Too many requests — please wait a while and try again.')
+          }
+          const d = e.response.data as { error?: string; detail?: string } | undefined
+          throw new Error(d?.error ?? d?.detail ?? 'Failed to book meeting. Please try again.')
+        }
+        throw new Error('Could not reach the server. Please check your connection and try again.')
       }
-      return res.json()
     },
   })
 }

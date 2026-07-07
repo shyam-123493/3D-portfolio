@@ -5,11 +5,23 @@ from rest_framework.throttling import AnonRateThrottle
 from django.core.mail import send_mail
 from django.conf import settings
 from .serializers import ContactSubmissionSerializer
+import logging
 import re
+
+logger = logging.getLogger(__name__)
 
 
 class ContactRateThrottle(AnonRateThrottle):
+    scope = 'contact'
     rate = '5/hour'
+
+
+class MeetingRateThrottle(AnonRateThrottle):
+    # Separate scope so contact-form submissions don't eat into the meeting
+    # quota (and vice versa) — sharing the default 'anon' bucket meant a few
+    # test submissions locked users out of booking entirely.
+    scope = 'meeting'
+    rate = '10/hour'
 
 
 class ContactSubmissionView(APIView):
@@ -39,21 +51,22 @@ class ContactSubmissionView(APIView):
                     message=(
                         f'Name: {submission.name}\n'
                         f'Email: {submission.email}\n'
-                        f'Company: {submission.company or "—"}\n\n'
+                        f'Company: {submission.company or "-"}\n\n'
                         f'Message:\n{submission.message}'
                     ),
                     from_email=settings.EMAIL_HOST_USER or 'noreply@portfolio.local',
                     recipient_list=[settings.CONTACT_NOTIFICATION_EMAIL],
-                    fail_silently=True,
+                    fail_silently=False,
                 )
             except Exception:
-                pass  # Never block submission on email failure
+                # Never block submission on email failure — but leave a trace
+                logger.exception('Contact notification email failed')
 
         return Response({'detail': 'Message received.'}, status=status.HTTP_201_CREATED)
 
 
 class MeetingBookingView(APIView):
-    throttle_classes = [ContactRateThrottle]
+    throttle_classes = [MeetingRateThrottle]
 
     EMAIL_RE = re.compile(r'^[^@\s]+@[^@\s]+\.[^@\s]+$')
 
@@ -85,24 +98,24 @@ class MeetingBookingView(APIView):
                     f'Time  : {time}\n'
                     f'Length: {duration} min\n'
                     f'Topic : {topic}\n\n'
-                    f'Notes :\n{notes or "—"}'
+                    f'Notes :\n{notes or "-"}'
                 ),
                 from_email=host_user,
                 recipient_list=[notify_email],
-                fail_silently=True,
+                fail_silently=False,
             )
         except Exception:
-            pass
+            logger.exception('Meeting notification email (to admin) failed')
 
         # --- Confirmation email to visitor ---
         try:
             send_mail(
-                subject=f'Meeting Request Received – {topic}',
+                subject=f'Meeting Request Received - {topic}',
                 message=(
                     f'Hi {name},\n\n'
                     f'Your meeting request has been received!\n\n'
                     f'Details\n'
-                    f'───────\n'
+                    f'-------\n'
                     f'Date     : {date}\n'
                     f'Time     : {time} IST\n'
                     f'Duration : {duration} min\n'
@@ -112,9 +125,9 @@ class MeetingBookingView(APIView):
                 ),
                 from_email=host_user,
                 recipient_list=[email],
-                fail_silently=True,
+                fail_silently=False,
             )
         except Exception:
-            pass
+            logger.exception('Meeting confirmation email (to visitor) failed')
 
         return Response({'detail': 'Meeting request received.'}, status=status.HTTP_201_CREATED)

@@ -7,7 +7,7 @@ export const siteSettings: SiteSettings = {
   phone: '+91 7498770064',
   location: 'Mumbai, India',
   linkedinUrl: 'https://linkedin.com/in/ghanshyam-desale',
-  githubUrl: 'https://github.com/ghanshyam-desale',
+  githubUrl: 'https://github.com/shyam-123493',
   resumeUrl: '/resume-ghanshyam-desale.pdf',
 }
 

@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, ExternalLink, Github } from 'lucide-react'
 import { useSceneStore } from '@/stores/sceneStore'
@@ -62,12 +63,16 @@ export function ProjectDetail({ projects }: ProjectDetailProps) {
     return () => { document.body.style.overflow = '' }
   }, [selectedProject])
 
-  return (
+  // Portalled to <body>: rendered inside <main> (zIndex: 1 stacking context)
+  // the panel can never paint above the fixed NavBar, which covers the top
+  // 56px — including the close button — on mobile where the panel is
+  // full-width and Escape isn't available.
+  return createPortal(
     <AnimatePresence>
       {project && (
         <>
           <motion.div
-            className="fixed inset-0 z-40 bg-bg-primary/80 backdrop-blur-sm"
+            className="fixed inset-0 z-[9600] bg-bg-primary/80 backdrop-blur-sm"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -76,7 +81,7 @@ export function ProjectDetail({ projects }: ProjectDetailProps) {
           />
 
           <motion.aside
-            className="fixed right-0 top-0 bottom-0 z-50 w-full max-w-xl bg-bg-secondary border-l border-border-subtle overflow-y-auto custom-scrollbar"
+            className="fixed right-0 top-0 bottom-0 z-[9610] w-full max-w-xl bg-bg-secondary border-l border-border-subtle overflow-y-auto custom-scrollbar"
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
@@ -174,6 +179,7 @@ export function ProjectDetail({ projects }: ProjectDetailProps) {
           </motion.aside>
         </>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
   )
 }

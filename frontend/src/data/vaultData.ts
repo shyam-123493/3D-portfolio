@@ -131,7 +131,7 @@ export const vaultSections: VaultSection[] = [
     items: [
       {
         title: '3D Portfolio',
-        url: 'https://github.com/ghanshyam',
+        url: 'https://github.com/shyam-123493',
         value: 'main',
         notes: 'This project — React + Django',
         tags: ['Personal'],

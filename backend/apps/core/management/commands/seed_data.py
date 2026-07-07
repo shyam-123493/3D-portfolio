@@ -26,7 +26,7 @@ class Command(BaseCommand):
                 phone='+91 7498770064',
                 location='Mumbai, India',
                 linkedin_url='https://linkedin.com/in/ghanshyam-desale',
-                github_url='https://github.com/ghanshyam-desale',
+                github_url='https://github.com/shyam-123493',
                 years_experience=3,
                 available_for_work=True,
             ),

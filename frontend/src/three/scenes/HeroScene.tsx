@@ -1,7 +1,8 @@
-import { useRef, useMemo, Suspense, useEffect } from 'react'
+import { useRef, useMemo, Suspense, useEffect, useLayoutEffect } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { Sparkles, Float, MeshDistortMaterial, Line, Sphere } from '@react-three/drei'
 import * as THREE from 'three'
+import gsap from 'gsap'
 import { useSceneStore } from '@/stores/sceneStore'
 import { getParticleCount, getPixelRatio } from '@/three/utils/performance'
 import { FrameDriver } from '@/three/hooks/FrameDriver'
@@ -230,6 +231,9 @@ function CameraController() {
   const { camera } = useThree()
   const mouse = useRef({ x: 0, y: 0 })
   const smooth = useRef({ x: 0, y: 0 })
+  // Cinematic dolly-in: starts pulled back and eases to the resting framing
+  // as the hero loads. Read every frame, so it blends with mouse + scroll.
+  const intro = useRef({ pullback: 1 })
 
   useEffect(() => {
     const onMove = (e: MouseEvent) => {
@@ -237,7 +241,17 @@ function CameraController() {
       mouse.current.y = -(e.clientY / window.innerHeight - 0.5) * 2
     }
     window.addEventListener('mousemove', onMove)
-    return () => window.removeEventListener('mousemove', onMove)
+
+    const tween = gsap.to(intro.current, {
+      pullback: 0,
+      duration: 2.6,
+      delay: 0.2,
+      ease: 'power3.out',
+    })
+    return () => {
+      window.removeEventListener('mousemove', onMove)
+      tween.kill()
+    }
   }, [])
 
   const scrollSmooth = useRef(0)
@@ -255,7 +269,7 @@ function CameraController() {
 
     camera.position.x = Math.sin(t * 0.07) * 0.38 + smooth.current.x * 0.95
     camera.position.y = Math.sin(t * 0.05) * 0.24 + smooth.current.y * 0.52 + scrollSmooth.current * 1.8
-    camera.position.z = 10 + scrollSmooth.current * 4.5
+    camera.position.z = 10 + scrollSmooth.current * 4.5 + intro.current.pullback * 3.6
     camera.lookAt(0, scrollSmooth.current * 2.4, 0)
   })
 
@@ -267,6 +281,23 @@ function SceneContent() {
   const { qualityLevel } = useSceneStore()
   const sparkleCount = Math.min(getParticleCount(qualityLevel), 80)
   const isLow = qualityLevel === 'low'
+  const gemsRef = useRef<THREE.Group>(null)
+
+  // Entrance choreography: gems pop in from scale 0 with a staggered
+  // back-out overshoot, in sync with the camera dolly-in. useLayoutEffect
+  // so scales are zeroed before the first frame renders (no full-size flash).
+  useLayoutEffect(() => {
+    const gems = gemsRef.current
+    if (!gems) return
+    const scales = gems.children.map((c) => c.scale)
+    const tl = gsap.timeline({ delay: 0.55 })
+    tl.fromTo(
+      scales,
+      { x: 0.001, y: 0.001, z: 0.001 },
+      { x: 1, y: 1, z: 1, duration: 1.25, ease: 'back.out(1.6)', stagger: 0.12 },
+    )
+    return () => { tl.kill() }
+  }, [isLow])
 
   return (
     <>
@@ -277,22 +308,24 @@ function SceneContent() {
 
       <CameraController />
 
-      {/* Large purple gem — left */}
-      <FloatingPrism position={[-5.8, 1.0, -1.5]} color="#8B7DFF" floatSpeed={0.55} rotSpeed={0.35} />
-      {/* Medium teal gem — upper right */}
-      <FloatingPrism position={[5.2, 2.5, -2.0]} color="#6FE3D2" floatSpeed={0.48} rotSpeed={0.28} />
-      {/* Blue gem — lower right */}
-      <FloatingPrism position={[4.8, -2.4, -1.2]} color="#0EA5E9" floatSpeed={0.68} rotSpeed={0.48} />
-      {/* Small violet gem — upper left */}
-      <FloatingPrism position={[-4.2, 3.2, -3.0]} color="#B5ADFF" floatSpeed={0.42} rotSpeed={0.22} />
+      <group ref={gemsRef}>
+        {/* Large purple gem — left */}
+        <FloatingPrism position={[-5.8, 1.0, -1.5]} color="#8B7DFF" floatSpeed={0.55} rotSpeed={0.35} />
+        {/* Medium teal gem — upper right */}
+        <FloatingPrism position={[5.2, 2.5, -2.0]} color="#6FE3D2" floatSpeed={0.48} rotSpeed={0.28} />
+        {/* Blue gem — lower right */}
+        <FloatingPrism position={[4.8, -2.4, -1.2]} color="#0EA5E9" floatSpeed={0.68} rotSpeed={0.48} />
+        {/* Small violet gem — upper left */}
+        <FloatingPrism position={[-4.2, 3.2, -3.0]} color="#B5ADFF" floatSpeed={0.42} rotSpeed={0.22} />
 
-      {!isLow && (
-        <>
-          {/* Extra small gems */}
-          <FloatingPrism position={[7.0, 0.5, -4.0]} color="#8B7DFF" floatSpeed={0.35} rotSpeed={0.18} />
-          <FloatingPrism position={[-6.5, -2.8, -3.5]} color="#6FE3D2" floatSpeed={0.62} rotSpeed={0.4} />
-        </>
-      )}
+        {!isLow && (
+          <>
+            {/* Extra small gems */}
+            <FloatingPrism position={[7.0, 0.5, -4.0]} color="#8B7DFF" floatSpeed={0.35} rotSpeed={0.18} />
+            <FloatingPrism position={[-6.5, -2.8, -3.5]} color="#6FE3D2" floatSpeed={0.62} rotSpeed={0.4} />
+          </>
+        )}
+      </group>
 
       {sparkleCount > 0 && (
         <Sparkles count={sparkleCount} scale={[28, 16, 10]} size={1.2} speed={0.2} opacity={0.3} color="#6FE3D2" noise={1.0} />

@@ -7,4 +7,7 @@ REST_FRAMEWORK['DEFAULT_RENDERER_CLASSES'] = [  # noqa: F405
     'rest_framework.renderers.BrowsableAPIRenderer',
 ]
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# Real SMTP (from .env) is used as soon as EMAIL_HOST_PASSWORD is set;
+# until then emails print to this console so dev works without secrets.
+if not EMAIL_HOST_PASSWORD:  # noqa: F405
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'

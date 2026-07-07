@@ -27,7 +27,7 @@ export const personalProjects: PersonalProject[] = [
     color: '#6FE3D2',
     status: 'live',
     year: 2025,
-    links: { github: 'https://github.com/ghanshyam' },
+    links: { github: 'https://github.com/shyam-123493' },
   },
   {
     id: 'ai-chat-tool',
@@ -51,7 +51,7 @@ export const personalProjects: PersonalProject[] = [
     color: '#F59E0B',
     status: 'live',
     year: 2024,
-    links: { github: 'https://github.com/ghanshyam' },
+    links: { github: 'https://github.com/shyam-123493' },
   },
   {
     id: 'devtools-ext',
