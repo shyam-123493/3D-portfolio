@@ -207,7 +207,7 @@ export function Achievements() {
             className="rounded-2xl overflow-hidden"
             style={{
               border: '1px solid var(--c-divider)',
-              background: 'rgba(8, 11, 18, 0.72)',
+              background: 'var(--c-glass-sm)',
             }}
             initial={{ opacity: 0, scale: 0.97 }}
             whileInView={{ opacity: 1, scale: 1 }}

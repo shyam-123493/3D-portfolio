@@ -7,10 +7,12 @@ import { usePersonalProjects, type PersonalProjectAPI } from '@/hooks/usePortfol
 
 type Status = 'live' | 'wip' | 'archived'
 
-const STATUS_STYLE: Record<Status, { label: string; color: string }> = {
-  live:     { label: 'Live',     color: '#6FE3D2' },
-  wip:      { label: 'In progress', color: '#F59E0B' },
-  archived: { label: 'Archived', color: '#6B7280' },
+// `color` stays hex because it feeds ${color}NN alpha-suffix tints; `textColor`
+// uses theme vars so the badge label stays readable on light backgrounds too
+const STATUS_STYLE: Record<Status, { label: string; color: string; textColor: string }> = {
+  live:     { label: 'Live',        color: '#6FE3D2', textColor: 'var(--c-teal)' },
+  wip:      { label: 'In progress', color: '#F59E0B', textColor: 'var(--accent-amber)' },
+  archived: { label: 'Archived',    color: '#6B7280', textColor: 'var(--c-text-muted)' },
 }
 
 // ── 3D tilt card ─────────────────────────────────────────────────────────────
@@ -57,7 +59,7 @@ function ProjectCard({ project, index }: { project: PersonalProjectAPI; index: n
           rotateX,
           rotateY,
           transformStyle: 'preserve-3d',
-          background: '#0C0C10',
+          background: 'var(--c-surface)',
           border: `1px solid ${project.color}28`,
           boxShadow: `0 0 0 0 ${project.color}00`,
           willChange: 'transform',
@@ -97,7 +99,7 @@ function ProjectCard({ project, index }: { project: PersonalProjectAPI; index: n
             <div
               className="w-full h-full flex items-center justify-center"
               style={{
-                background: `radial-gradient(ellipse 80% 80% at 50% 50%, ${project.color}18 0%, #0C0C10 75%)`,
+                background: `radial-gradient(ellipse 80% 80% at 50% 50%, ${project.color}18 0%, var(--c-surface) 75%)`,
               }}
             >
               {/* Floating geometric accent */}
@@ -132,7 +134,7 @@ function ProjectCard({ project, index }: { project: PersonalProjectAPI; index: n
           {/* Bottom gradient fade */}
           <div
             className="absolute bottom-0 left-0 right-0 h-16 pointer-events-none"
-            style={{ background: 'linear-gradient(to top, #0C0C10, transparent)' }}
+            style={{ background: 'linear-gradient(to top, var(--c-surface), transparent)' }}
           />
 
           {/* Status badge */}
@@ -140,7 +142,7 @@ function ProjectCard({ project, index }: { project: PersonalProjectAPI; index: n
             <span
               className="font-mono text-[9px] tracking-[0.18em] uppercase px-2 py-1 rounded-full"
               style={{
-                color: status.color,
+                color: status.textColor,
                 background: `${status.color}18`,
                 border: `1px solid ${status.color}40`,
               }}
@@ -151,7 +153,7 @@ function ProjectCard({ project, index }: { project: PersonalProjectAPI; index: n
 
           {/* Year */}
           <div className="absolute top-3 left-3">
-            <span className="font-mono text-[9px] tracking-widest" style={{ color: 'rgba(255,255,255,0.35)' }}>
+            <span className="font-mono text-[9px] tracking-widest" style={{ color: 'var(--c-text-muted)' }}>
               {project.year}
             </span>
           </div>
@@ -167,7 +169,7 @@ function ProjectCard({ project, index }: { project: PersonalProjectAPI; index: n
             />
             <h3
               className="font-serif italic mb-1"
-              style={{ fontSize: 'clamp(1.1rem, 2.5vw, 1.4rem)', color: '#F0EFE9', lineHeight: 1.2 }}
+              style={{ fontSize: 'clamp(1.1rem, 2.5vw, 1.4rem)', color: 'var(--c-text)', lineHeight: 1.2 }}
             >
               {project.title}
             </h3>
@@ -176,7 +178,7 @@ function ProjectCard({ project, index }: { project: PersonalProjectAPI; index: n
             </p>
           </div>
 
-          <p className="text-sm leading-relaxed mb-4" style={{ color: 'rgba(240,239,233,0.6)' }}>
+          <p className="text-sm leading-relaxed mb-4" style={{ color: 'var(--c-text-muted)' }}>
             {project.description}
           </p>
 
@@ -187,9 +189,9 @@ function ProjectCard({ project, index }: { project: PersonalProjectAPI; index: n
                 key={t.name}
                 className="font-mono text-[9px] px-2 py-0.5 rounded tracking-wide"
                 style={{
-                  color: 'rgba(240,239,233,0.55)',
-                  background: 'rgba(255,255,255,0.06)',
-                  border: '1px solid rgba(255,255,255,0.09)',
+                  color: 'var(--c-text-muted)',
+                  background: 'var(--c-overlay-faint)',
+                  border: '1px solid var(--c-overlay-subtle)',
                 }}
               >
                 {t.name}
@@ -205,9 +207,9 @@ function ProjectCard({ project, index }: { project: PersonalProjectAPI; index: n
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-1.5 font-mono text-[10px] tracking-wide transition-colors duration-150"
-                style={{ color: 'rgba(255,255,255,0.5)' }}
+                style={{ color: 'var(--c-text-muted)' }}
                 onMouseEnter={(e) => ((e.currentTarget as HTMLAnchorElement).style.color = project.color)}
-                onMouseLeave={(e) => ((e.currentTarget as HTMLAnchorElement).style.color = 'rgba(255,255,255,0.5)')}
+                onMouseLeave={(e) => ((e.currentTarget as HTMLAnchorElement).style.color = 'var(--c-text-muted)')}
               >
                 <Github size={13} />
                 GitHub
@@ -219,9 +221,9 @@ function ProjectCard({ project, index }: { project: PersonalProjectAPI; index: n
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-1.5 font-mono text-[10px] tracking-wide transition-colors duration-150"
-                style={{ color: 'rgba(255,255,255,0.5)' }}
+                style={{ color: 'var(--c-text-muted)' }}
                 onMouseEnter={(e) => ((e.currentTarget as HTMLAnchorElement).style.color = project.color)}
-                onMouseLeave={(e) => ((e.currentTarget as HTMLAnchorElement).style.color = 'rgba(255,255,255,0.5)')}
+                onMouseLeave={(e) => ((e.currentTarget as HTMLAnchorElement).style.color = 'var(--c-text-muted)')}
               >
                 <ExternalLink size={13} />
                 Live
@@ -233,9 +235,9 @@ function ProjectCard({ project, index }: { project: PersonalProjectAPI; index: n
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-1.5 font-mono text-[10px] tracking-wide transition-colors duration-150"
-                style={{ color: 'rgba(255,255,255,0.5)' }}
+                style={{ color: 'var(--c-text-muted)' }}
                 onMouseEnter={(e) => ((e.currentTarget as HTMLAnchorElement).style.color = project.color)}
-                onMouseLeave={(e) => ((e.currentTarget as HTMLAnchorElement).style.color = 'rgba(255,255,255,0.5)')}
+                onMouseLeave={(e) => ((e.currentTarget as HTMLAnchorElement).style.color = 'var(--c-text-muted)')}
               >
                 <Play size={13} />
                 Demo
@@ -248,7 +250,7 @@ function ProjectCard({ project, index }: { project: PersonalProjectAPI; index: n
         <motion.div
           className="absolute inset-0 pointer-events-none rounded-2xl"
           style={{
-            background: `radial-gradient(circle at ${glareX} ${glareY}, rgba(255,255,255,0.06) 0%, transparent 55%)`,
+            background: `radial-gradient(circle at ${glareX} ${glareY}, rgba(var(--c-invert-rgb),0.06) 0%, transparent 55%)`,
           }}
         />
       </motion.div>
@@ -270,7 +272,7 @@ export function PersonalProjects() {
         className="absolute inset-0 pointer-events-none"
         style={{
           background:
-            'radial-gradient(ellipse 70% 40% at 50% 50%, rgba(139,125,255,0.05) 0%, transparent 65%)',
+            'radial-gradient(ellipse 70% 40% at 50% 50%, rgba(var(--c-violet-rgb),0.05) 0%, transparent 65%)',
         }}
       />
 
@@ -289,14 +291,14 @@ export function PersonalProjects() {
                 <div
                   key={i}
                   className="rounded-2xl overflow-hidden animate-pulse"
-                  style={{ background: '#0C0C10', border: '1px solid rgba(255,255,255,0.06)', height: 380 }}
+                  style={{ background: 'var(--c-surface)', border: '1px solid var(--c-divider)', height: 380 }}
                 >
-                  <div className="h-48" style={{ background: 'rgba(255,255,255,0.04)' }} />
+                  <div className="h-48" style={{ background: 'var(--c-overlay-faint)' }} />
                   <div className="p-5 space-y-3">
-                    <div className="h-3 rounded w-1/3" style={{ background: 'rgba(255,255,255,0.06)' }} />
-                    <div className="h-5 rounded w-2/3" style={{ background: 'rgba(255,255,255,0.06)' }} />
-                    <div className="h-3 rounded w-full" style={{ background: 'rgba(255,255,255,0.04)' }} />
-                    <div className="h-3 rounded w-4/5" style={{ background: 'rgba(255,255,255,0.04)' }} />
+                    <div className="h-3 rounded w-1/3" style={{ background: 'var(--c-overlay-subtle)' }} />
+                    <div className="h-5 rounded w-2/3" style={{ background: 'var(--c-overlay-subtle)' }} />
+                    <div className="h-3 rounded w-full" style={{ background: 'var(--c-overlay-faint)' }} />
+                    <div className="h-3 rounded w-4/5" style={{ background: 'var(--c-overlay-faint)' }} />
                   </div>
                 </div>
               ))}
@@ -321,7 +323,7 @@ export function PersonalProjects() {
           {projects && projects.length > 0 && (
             <p
               className="mt-8 text-center font-mono text-[10px] tracking-widest uppercase"
-              style={{ color: 'rgba(255,255,255,0.2)' }}
+              style={{ color: 'var(--c-text-subtle)' }}
             >
               More projects cooking — check back soon
             </p>

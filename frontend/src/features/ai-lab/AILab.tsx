@@ -48,7 +48,7 @@ function RadialGauge({ pct, color, label, index }: { pct: number; color: string;
           {/* Track */}
           <circle
             cx={size / 2} cy={size / 2} r={r}
-            fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth={stroke}
+            fill="none" stroke="var(--c-overlay-subtle)" strokeWidth={stroke}
           />
           {/* Fill */}
           <motion.circle

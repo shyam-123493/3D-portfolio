@@ -215,7 +215,7 @@ function ProjectPlanet({
               textTransform: 'uppercase',
               color,
               textShadow: `0 0 12px ${color}`,
-              background: 'rgba(5,5,6,0.72)',
+              background: 'var(--c-glass-sm)',
               border: `1px solid ${color}40`,
               borderRadius: '4px',
               padding: isSelected ? '4px 10px' : '2px 7px',
