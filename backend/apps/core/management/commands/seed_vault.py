@@ -3,9 +3,9 @@ from django.core.management.base import BaseCommand
 from apps.vault.models import VaultSection, VaultItem
 
 # Bootstrap content only — the vault is edited live through the UI, so this
-# command must never overwrite an existing vault. That is also why vault data
-# is NOT in fixtures/initial_data.json: loaddata runs on every boot and would
-# resurrect items the user deleted.
+# command must never overwrite an existing vault. Vault data stays out of
+# fixtures/initial_data.json so a fixture reload (bootstrap_data --force)
+# can never resurrect items the user deleted.
 SECTIONS = [
     dict(slug='extensions', label='Extensions', emoji='🧩', order=1, items=[
         dict(title='Redux DevTools', url='https://chrome.google.com/webstore/detail/redux-devtools/lmhkpmbekcpmknklioeibfkpmmfibljd', tags=['Chrome', 'React', 'Debug']),
@@ -75,7 +75,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         if VaultSection.objects.exists():
             if not options['force']:
-                self.stdout.write('Vault already has sections — skipping (use --force to reseed).')
+                self.stdout.write('Vault already has sections - skipping (use --force to reseed).')
                 return
             VaultSection.objects.all().delete()
 
@@ -84,5 +84,7 @@ class Command(BaseCommand):
             section = VaultSection.objects.create(**section_data)
             for order, item in enumerate(items):
                 VaultItem.objects.create(section=section, order=order, **item)
-            self.stdout.write(f'  OK {section.emoji} {section.label} — {len(items)} items')
+            # ASCII-only output: emoji can raise UnicodeEncodeError on cp1252
+            # consoles, and an exception here would abort the boot chain
+            self.stdout.write(f'  OK {section.label} - {len(items)} items')
         self.stdout.write(self.style.SUCCESS('Vault seeded.'))

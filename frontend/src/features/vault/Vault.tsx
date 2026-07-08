@@ -571,7 +571,7 @@ function VaultPanel({ sections, pin, onSectionsChange }: {
         </div>
 
         {/* Items */}
-        <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
+        <div data-lenis-prevent className="flex-1 overflow-y-auto p-4 custom-scrollbar">
           <AnimatePresence mode="wait">
             <motion.div
               key={activeTab}
@@ -654,7 +654,7 @@ export function Vault() {
       {isOpen && (
         <motion.div
           key="vault-backdrop"
-          className="fixed inset-0 z-[99998]"
+          className="fixed inset-0 z-[99998] vault-overlay"
           style={{ background: 'rgba(5,5,6,0.82)' }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}

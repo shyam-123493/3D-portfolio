@@ -550,6 +550,16 @@ html.lenis { height: auto; }
 .lenis.lenis-smooth { scroll-behavior: auto !important; }
 .lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
 
+/* Vault overlay is intentionally dark in both themes — pin the dark-theme
+   text/accent vars so light mode doesn't paint near-black text on the black
+   panel (which reads as an empty black screen). */
+.vault-overlay {
+  --c-text:       #F0EFE9;
+  --c-text-muted: #6B7280;
+  --c-teal:       #6FE3D2;
+  --c-teal-rgb:   111, 227, 210;
+}
+
 canvas { display: block; }
 
 .hero-canvas-glow canvas { filter: brightness(1.08) contrast(1.04); }

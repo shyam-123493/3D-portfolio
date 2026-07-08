@@ -81,6 +81,7 @@ export function ProjectDetail({ projects }: ProjectDetailProps) {
           />
 
           <motion.aside
+            data-lenis-prevent
             className="fixed right-0 top-0 bottom-0 z-[9610] w-full max-w-xl bg-bg-secondary border-l border-border-subtle overflow-y-auto custom-scrollbar"
             initial={{ x: '100%' }}
             animate={{ x: 0 }}

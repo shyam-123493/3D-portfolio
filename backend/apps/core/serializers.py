@@ -30,7 +30,7 @@ def _parse_entry_date(raw):
 
 
 def compute_years_experience():
-    """Full years elapsed since the earliest work-type timeline entry.
+    """Years since the earliest work-type timeline entry, rounded to nearest.
 
     Derived from the Experience table so adding/removing entries in the
     admin or fixtures updates the number everywhere it is displayed.
@@ -44,7 +44,7 @@ def compute_years_experience():
     if not starts:
         return None
     days = (date.today() - min(starts)).days
-    return max(int(days / 365.25), 0)
+    return max(round(days / 365.25), 0)
 
 
 class SiteSettingsSerializer(serializers.ModelSerializer):

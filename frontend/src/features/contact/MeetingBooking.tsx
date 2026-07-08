@@ -273,7 +273,7 @@ function CalendarStep({ onSelect }: { onSelect: (date: Date, time: string, durat
               <span className="text-xs font-medium" style={{ color: c.textMuted }}>12h</span>
             </div>
 
-            <div className="flex flex-col gap-2 overflow-y-auto max-h-80 pr-1">
+            <div data-lenis-prevent className="flex flex-col gap-2 overflow-y-auto max-h-80 pr-1">
               {timeSlots.length === 0 ? (
                 <p className="text-sm text-center py-4" style={{ color: c.textFaint }}>No slots available</p>
               ) : timeSlots.map(t => (

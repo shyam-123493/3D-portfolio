@@ -87,6 +87,7 @@ export function RecruiterView() {
           />
 
           <motion.aside
+            data-lenis-prevent
             className="fixed inset-y-0 right-0 z-[9610] w-full max-w-2xl bg-bg-secondary border-l border-border-subtle overflow-y-auto custom-scrollbar"
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
